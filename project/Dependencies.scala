@@ -5,8 +5,7 @@ object Dependencies {
   val config = "com.typesafe" % "config" % "1.3.0"
 
   //https://github.com/typesafehub/scala-logging
-  val logging =
-    List("com.typesafe.scala-logging" %% "scala-logging" % "3.7.2")
+  val logging = "com.typesafe.scala-logging" %% "scala-logging" % "3.7.2"
 
   val testDependencies = List(
     "org.scalactic" %% "scalactic" % "3.0.4" % "test",
@@ -17,5 +16,6 @@ object Dependencies {
 
   val circe: List[ModuleID] = List("core", "generic", "parser", "optics", "java8").map(name => "io.circe" %% s"circe-$name" % "0.9.1")
 
-  val Json: List[ModuleID] = config :: circe ::: testDependencies
+  val simulacrum = "com.github.mpilquist" %% "simulacrum" % "0.12.0"
+  val Json: List[ModuleID] = simulacrum :: config :: circe ::: testDependencies
 }

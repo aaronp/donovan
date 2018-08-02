@@ -1,23 +1,30 @@
 val repo = "donovan"
 name := repo
+libraryDependencies ++= Dependencies.Json
 val username            = "aaronp"
 val scalaEleven         = "2.11.8"
 val scalaTwelve         = "2.12.6"
 val defaultScalaVersion = scalaTwelve
+
+// see https://github.com/sbt/sbt-ghpages
+// this exposes the 'ghpagesPushSite' task
+enablePlugins(GhpagesPlugin)
+enablePlugins(PamfletPlugin)
+enablePlugins(SiteScaladocPlugin)
+enablePlugins(BuildInfoPlugin)
+enablePlugins(GitVersioning)
+
+addCompilerPlugin("org.spire-math"  %% "kind-projector" % "0.9.3")
+addCompilerPlugin("org.scalamacros" % "paradise"        % "2.1.0" cross CrossVersion.full)
+
 crossScalaVersions := Seq(scalaEleven, scalaTwelve)
 organization := s"com.github.${username}"
 scalaVersion := defaultScalaVersion
 resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
-enablePlugins(GitVersioning)
 autoAPIMappings := true
 exportJars := false
 javacOptions ++= Seq("-source", "1.8", "-target", "1.8", "-XX:MaxMetaspaceSize=1g")
 git.useGitDescribe := false
-
-scalacOptions += "-Ypartial-unification"
-
-addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.3")
-
 buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion)
 buildInfoPackage := s"${repo}.build"
 assemblyMergeStrategy in assembly := {
@@ -27,13 +34,18 @@ assemblyMergeStrategy in assembly := {
     oldStrategy(x)
 }
 
+packageOptions in (Compile, packageBin) += Package.ManifestAttributes("git-sha" -> git.gitHeadCommit.value.getOrElse("unknown"))
+
 // see http://www.scalatest.org/user_guide/using_scalatest_with_sbt
 testOptions in Test += (Tests.Argument(TestFrameworks.ScalaTest, "-h", s"target/scalatest-reports", "-oN"))
 
 // put scaladocs under 'api/latest'
 sourceDirectory in Pamflet := sourceDirectory.value / "site"
 
-siteSubdirName in SiteScaladoc := "site/latest"
+// see https://www.scala-sbt.org/sbt-site/api-documentation.html
+siteSubdirName in SiteScaladoc := "api/latest"
+
+scalacOptions in (Compile, doc) ++= Seq("-groups", "-implicits")
 
 git.gitTagToVersionNumber := { tag: String =>
   if (tag matches "v?[0-9]+\\..*") {
@@ -41,35 +53,15 @@ git.gitTagToVersionNumber := { tag: String =>
   } else None
 }
 
+coverageMinimum := 75
+coverageFailOnMinimum := true
+
 // see http://scalameta.org/scalafmt/
 scalafmtOnCompile in ThisBuild := true
 scalafmtVersion in ThisBuild := "1.4.0"
 
-// Define a `Configuration` for each project, as per http://www.scala-sbt.org/sbt-site/api-documentation.html
-val Api = config("api")
-
-// see https://github.com/sbt/sbt-ghpages
-// this exposes the 'ghpagesPushSite' task
-enablePlugins(GhpagesPlugin)
 git.remoteRepo := s"git@github.com:$username/$repo.git"
 ghpagesNoJekyll := true
-
-enablePlugins(PamfletPlugin)
-enablePlugins(SiteScaladocPlugin)
-
-// SiteScaladocPlugin.scaladocSettings(
-//   conf,
-//   mappings in (Compile, packageDoc) in project,
-//   s"api/${project.id}"
-// )
-
-sourceDirectory in Pamflet := sourceDirectory.value / "site"
-
-siteSubdirName in ScalaUnidoc := "latest"
-
-//addMappingsToSiteDir(mappings in (ScalaUnidoc, packageDoc), siteSubdirName in ScalaUnidoc)
-
-//settings(sourceDirectory in Pamflet := sourceDirectory.value / "site")
 
 lazy val settings = scalafmtSettings
 
@@ -106,21 +98,18 @@ scalacOptions ++= List(
   "-Ywarn-nullary-override", // Warn when non-nullary `def f()' overrides nullary `def f'.
   "-Ywarn-nullary-unit",     // Warn when nullary methods return Unit.
   //  "-Ywarn-numeric-widen", // Warn when numerics are widened.
+  "-Ypartial-unification",
   "-Ywarn-value-discard", // Warn when non-Unit expression results are unused.
   "-feature", // Emit warning and location for usages of features that should be imported explicitly.
   "-language:reflectiveCalls", // Allow reflective calls
   "-language:higherKinds", // Allow higher-kinded types
   "-language:implicitConversions", // Allow definition of implicit functions called views
-  "-unchecked",
-  "-language:reflectiveCalls", // Allow reflective calls
-  "-language:higherKinds", // Allow higher-kinded types
-  "-language:implicitConversions" // Allow definition of implicit functions called views
+  "-unchecked"
 )
 
 test in assembly := {}
 
 publishMavenStyle := true
-libraryDependencies ++= Dependencies.Json
 
 // see https://leonard.io/blog/2017/01/an-in-depth-guide-to-deploying-to-maven-central/
 pomIncludeRepository := (_ => false)
