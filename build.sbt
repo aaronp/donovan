@@ -34,6 +34,16 @@ assemblyMergeStrategy in assembly := {
     oldStrategy(x)
 }
 
+credentials += Credentials(Path.userHome / ".sbt" / ".credentials")
+
+publishTo := {
+  val nexus = "https://oss.sonatype.org/"
+  if (isSnapshot.value)
+    Some("snapshots" at nexus + "content/repositories/snapshots")
+  else
+    Some("releases" at nexus + "service/local/staging/deploy/maven2")
+}
+
 packageOptions in (Compile, packageBin) += Package.ManifestAttributes("git-sha" -> git.gitHeadCommit.value.getOrElse("unknown"))
 
 // see http://www.scalatest.org/user_guide/using_scalatest_with_sbt
