@@ -7,23 +7,24 @@ import scala.compat.Platform
 
 /**
   * Flattens a json object into a tree structure of paths and the types, e.g.:
-  * {{{
+  *
+  *
   *   "ary[]:NullType",
-      "base.nestedArray[]:NumericType",
-      "base.nestedBoolean:BooleanType",
-      "base.objArray[].deepNestedArray[].buzz:NumericType",
-      "base.objArray[].deepNestedArray[].meh:NumericType",
-      "base.objArray[].deepNestedArray[].mysterious:BooleanType",
-      "base.objArray[].deepNestedArray[].mysterious:NumericType",
-      "base.objArray[].deepNestedArray[].mysterious:TextType",
-      "base.objArray[].deepNestedArray[].mysterious[].nowItsAnObj:BooleanType",
-      "base.objArray[].deepNestedArray[].mysterious[]:NumericType",
-      "base.objArray[].deepNestedArray[]:BooleanType",
-      "base.objArray[].deepNestedArray[]:NumericType",
-      "base.objArray[].foo:TextType",
-      "base.objArray[].second:TextType",
-      "dbl:NumericType",
-  * }}}
+  *   "base.nestedArray[]:NumericType",
+  *   "base.nestedBoolean:BooleanType",
+  *   "base.objArray[].deepNestedArray[].buzz:NumericType",
+  *   "base.objArray[].deepNestedArray[].meh:NumericType",
+  *   "base.objArray[].deepNestedArray[].mysterious:BooleanType",
+  *   "base.objArray[].deepNestedArray[].mysterious:NumericType",
+  *   "base.objArray[].deepNestedArray[].mysterious:TextType",
+  *   "base.objArray[].deepNestedArray[].mysterious[].nowItsAnObj:BooleanType",
+  *   "base.objArray[].deepNestedArray[].mysterious[]:NumericType",
+  *   "base.objArray[].deepNestedArray[]:BooleanType",
+  *   "base.objArray[].deepNestedArray[]:NumericType",
+  *   "base.objArray[].foo:TextType",
+  *   "base.objArray[].second:TextType",
+  *   "dbl:NumericType",
+  *
   *
   * note that the same path can be seen w/ different value types (e.g. {x : 1} and then {x : true})
   */
@@ -32,7 +33,7 @@ sealed trait TypeNode {
   override def toString = flatten.sorted.mkString(Platform.EOL)
 
   /** Convenience method for turning the 'flattenPaths' into string descriptions
-    * @return
+    *
     */
   final def flatten: Vector[String] = {
     flattenPaths.map {
