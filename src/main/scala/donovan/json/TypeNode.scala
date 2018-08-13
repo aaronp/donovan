@@ -8,8 +8,8 @@ import scala.compat.Platform
 /**
   * Flattens a json object into a tree structure of paths and the types, e.g.:
   *
-  *
-  *   "ary[]:NullType",
+  * {{{
+  *  "ary[]:NullType",
   *   "base.nestedArray[]:NumericType",
   *   "base.nestedBoolean:BooleanType",
   *   "base.objArray[].deepNestedArray[].buzz:NumericType",
@@ -23,8 +23,8 @@ import scala.compat.Platform
   *   "base.objArray[].deepNestedArray[]:NumericType",
   *   "base.objArray[].foo:TextType",
   *   "base.objArray[].second:TextType",
-  *   "dbl:NumericType",
-  *
+  *   "dbl:NumericType"
+  *}}}
   *
   * note that the same path can be seen w/ different value types (e.g. {x : 1} and then {x : true})
   */

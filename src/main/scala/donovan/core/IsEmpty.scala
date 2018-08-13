@@ -2,6 +2,10 @@ package donovan.core
 import io.circe.Json
 import simulacrum.typeclass
 
+/**
+  * Provides the ability to check if a particular value of T is empty
+  * @tparam T
+  */
 @typeclass trait IsEmpty[-T] {
   def isEmpty(value: T): Boolean
   def nonEmpty(value: T): Boolean = !isEmpty(value)
