@@ -1,8 +1,10 @@
 import sbt._
-
+import org.portablescala.sbtplatformdeps.PlatformDepsPlugin.autoImport._
+import sbtcrossproject.CrossPlugin.autoImport.{crossProject, CrossType, _}
+import scalajscrossproject.ScalaJSCrossPlugin.autoImport._
 object Dependencies {
 
-  val config = "com.typesafe" % "config" % "1.3.0"
+  val config = "com.typesafe" % "config" % "1.3.0" % "test"
 
   //https://github.com/typesafehub/scala-logging
   val logging = "com.typesafe.scala-logging" %% "scala-logging" % "3.7.2"
@@ -14,8 +16,15 @@ object Dependencies {
     "junit" % "junit" % "4.12" % "test"
   )
 
-  val circe: List[ModuleID] = List("core", "generic", "parser", "optics", "java8").map(name => "io.circe" %% s"circe-$name" % "0.9.1")
+  val circe = {
+    Def.setting{
+      ("com.github.mpilquist" %%% "simulacrum" % "0.12.0") ::
+      List("core", "generic", "parser", "optics", "java8").map(name => "io.circe" %% s"circe-$name" % "0.9.1")
+    }
+  }
 
-  val simulacrum = "com.github.mpilquist" %% "simulacrum" % "0.12.0"
-  val Json: List[ModuleID] = simulacrum :: config :: circe ::: testDependencies
+
+  // https://github.com/vmunier/play-scalajs.g8/issues/20
+  val JVM = Def.setting(config :: testDependencies ::: circe.value)
+  val Javascript = circe
 }

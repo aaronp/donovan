@@ -1,6 +1,7 @@
+import sbtcrossproject.CrossPlugin.autoImport.{crossProject, CrossType}
+
 val repo = "donovan"
 name := repo
-libraryDependencies ++= Dependencies.Json
 val username            = "aaronp"
 val scalaEleven         = "2.11.8"
 val scalaTwelve         = "2.12.6"
@@ -14,10 +15,36 @@ enablePlugins(SiteScaladocPlugin)
 enablePlugins(BuildInfoPlugin)
 enablePlugins(GitVersioning)
 
-addCompilerPlugin("org.spire-math"  %% "kind-projector" % "0.9.3")
-addCompilerPlugin("org.scalamacros" % "paradise"        % "2.1.0" cross CrossVersion.full)
+addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.3")
 
 crossScalaVersions := Seq(scalaEleven, scalaTwelve)
+
+lazy val root = project
+  .in(file("."))
+  .aggregate(donovanJS, donovanJVM)
+  .settings(
+    publish := {},
+    publishLocal := {}
+  )
+
+lazy val donovan = crossProject
+  .in(file("."))
+  .settings(
+    name := "donovan"
+  )
+  .jvmSettings(
+    libraryDependencies ++= Dependencies.JVM.value,
+    addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full)
+  )
+  .jsSettings(
+    //enablePlugins(ScalaJSPlugin)
+    libraryDependencies ++= Dependencies.Javascript.value,
+    addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full)
+  )
+
+lazy val donovanJVM = donovan.jvm
+lazy val donovanJS  = donovan.js
+
 organization := s"com.github.${username}"
 scalaVersion := defaultScalaVersion
 resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
@@ -81,9 +108,9 @@ scalacOptions ++= List(
   "utf-8", // Specify character encoding used by source files.
   "-unchecked",
   //  "-explaintypes", // Explain type errors in more detail.
-  "-unchecked", // Enable additional warnings where generated code depends on assumptions.
+  "-unchecked",  // Enable additional warnings where generated code depends on assumptions.
   "-Xcheckinit", // Wrap field accessors to throw an exception on uninitialized access.
-  "-Xfatal-warnings", // Fail the compilation if there are any warnings.
+  //"-Xfatal-warnings", // Fail the compilation if there are any warnings.
   "-Xfuture", // Turn on future language features.
   "-Xlint:adapted-args", // Warn if an argument list is modified to match the receiver.
   "-Xlint:by-name-right-associative", // By-name parameter of right associative operator.
@@ -109,7 +136,7 @@ scalacOptions ++= List(
   "-Ywarn-nullary-unit",     // Warn when nullary methods return Unit.
   //  "-Ywarn-numeric-widen", // Warn when numerics are widened.
   "-Ypartial-unification",
-  "-Ywarn-value-discard", // Warn when non-Unit expression results are unused.
+  // "-Ywarn-value-discard", // Warn when non-Unit expression results are unused.
   "-feature", // Emit warning and location for usages of features that should be imported explicitly.
   "-language:reflectiveCalls", // Allow reflective calls
   "-language:higherKinds", // Allow higher-kinded types
