@@ -8,7 +8,7 @@ name := repo
 val username            = "aaronp"
 val scalaEleven         = "2.11.8"
 val scalaTwelve         = "2.12.6"
-val defaultScalaVersion = scalaEleven
+val defaultScalaVersion = scalaTwelve
 
 // see https://github.com/sbt/sbt-ghpages
 // this exposes the 'ghpagesPushSite' task
@@ -20,7 +20,7 @@ enablePlugins(GitVersioning)
 
 addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.3")
 
-crossScalaVersions := Seq(scalaEleven, scalaTwelve)
+crossScalaVersions := Seq(scalaTwelve) //scalaEleven,
 
 test in assembly := {}
 
