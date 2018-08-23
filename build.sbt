@@ -20,51 +20,56 @@ addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.3")
 
 crossScalaVersions := Seq(scalaEleven, scalaTwelve)
 
+test in assembly := {}
+
+lazy val noPublishSettings = skip in publish := true
+
+lazy val publishSettings = Seq(
+  publishMavenStyle := true,
+  // see https://leonard.io/blog/2017/01/an-in-depth-guide-to-deploying-to-maven-central/
+  pomIncludeRepository := (_ => false),
+  // To sync with Maven central, you need to supply the following information:
+  pomExtra in Global := {
+    <url>https://github.com/${username}/${repo}
+    </url>
+      <licenses>
+        <license>
+          <name>Apache 2</name>
+          <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+      </licenses>
+      <developers>
+        <developer>
+          <id>${username}</id>
+          <name>Aaron Pritzlaff</name>
+          <url>https://github.com/${username}/${repo}
+          </url>
+        </developer>
+      </developers>
+  },
+  credentials += Credentials(Path.userHome / ".sbt" / ".credentials"),
+  publishTo := {
+    val nexus = "https://oss.sonatype.org/"
+    if (isSnapshot.value)
+      Some("snapshots" at nexus + "content/repositories/snapshots")
+    else
+      Some("releases" at nexus + "service/local/staging/deploy/maven2")
+  }
+)
+
+lazy val commonSettings = publishSettings
+
 lazy val root = project
   .in(file("."))
   .aggregate(donovanJS, donovanJVM)
-  .settings(
-    publish := {},
-    publishLocal := {}
-  )
+  .dependsOn(donovanJS, donovanJVM)
+  .settings(commonSettings: _*)
+  .settings(noPublishSettings)
 
-test in assembly := {}
-
-lazy val donovan = crossProject
+lazy val donovan = crossProject(JSPlatform, JVMPlatform)
   .in(file("."))
-  .settings(
-    name := "donovan",
-    publishMavenStyle := true,
-// see https://leonard.io/blog/2017/01/an-in-depth-guide-to-deploying-to-maven-central/
-    pomIncludeRepository := (_ => false),
-// To sync with Maven central, you need to supply the following information:
-    pomExtra in Global := {
-      <url>https://github.com/${username}/${repo}
-  </url>
-    <licenses>
-      <license>
-        <name>Apache 2</name>
-        <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-      </license>
-    </licenses>
-    <developers>
-      <developer>
-        <id>${username}</id>
-        <name>Aaron Pritzlaff</name>
-        <url>https://github.com/${username}/${repo}
-        </url>
-      </developer>
-    </developers>
-    },
-    credentials += Credentials(Path.userHome / ".sbt" / ".credentials"),
-    publishTo := {
-      val nexus = "https://oss.sonatype.org/"
-      if (isSnapshot.value)
-        Some("snapshots" at nexus + "content/repositories/snapshots")
-      else
-        Some("releases" at nexus + "service/local/staging/deploy/maven2")
-    }
-  )
+  .settings(name := "donovan")
+  .settings(commonSettings: _*)
   .jvmSettings(
     libraryDependencies ++= Dependencies.JVM.value,
     addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full)
