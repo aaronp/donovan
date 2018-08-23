@@ -11,15 +11,15 @@ class JPartTest extends BaseJsonSpec with implicits {
 
   "JFilter.and" should {
     "return true when both conditions are true" in {
-      (("value" lte 7) and ("value" =!= 6)).matches(Map("value" -> 6).asJson) shouldBe (false)
-      (("value" lte 7) and ("value" !== 6)).matches(Map("value" -> 5).asJson) shouldBe (true)
+      (("value" lte 7).asMatcher() and ("value" =!= 6)).matches(Map("value" -> 6).asJson) shouldBe (false)
+      (("value" lte 7).asMatcher() and ("value" !== 6)).matches(Map("value" -> 5).asJson) shouldBe (true)
     }
   }
 
   "JFilter.or" should {
     "return true when either condition is true" in {
-      (("value" lte 7) or ("value" gte 61)).matches(Map("value" -> 15).asJson) shouldBe (false)
-      (("value" lte 7) or ("value" gte 61)).matches(Map("value" -> 65).asJson) shouldBe (true)
+      (("value" lte 7).asMatcher() or ("value" gte 61)).matches(Map("value" -> 15).asJson) shouldBe (false)
+      (("value" lte 7).asMatcher() or ("value" gte 61)).matches(Map("value" -> 65).asJson) shouldBe (true)
     }
   }
   "JFilter.gt" should {

@@ -11,6 +11,21 @@ object TimeCoords {
 
   def nowUTC(): Timestamp = now()
 
+  /**
+    * parses the text as a means to resolving a point in time given a reference time (presumably 'now').
+    *
+    * e.g.
+    *
+    * {{{
+    *
+    *    // 'yesterday' resolved based on 'nowUTC'
+    *    val yesterdayOpt : Option[Timestamp] = TimeCoords("yesterday").map(nowUTC())
+    * }}}
+    *
+    *
+    * @param text the text to parse
+    * @return an option for a function which takes a reference time and return a Timestamp
+    */
   def unapply(text: String): Option[Timestamp => Timestamp] = {
     text match {
       case FixedDateTime(time)        => Option((_: Timestamp) => time)

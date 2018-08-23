@@ -5,9 +5,17 @@ import io.circe._
 import io.circe.generic.auto._
 import io.circe.syntax._
 
+/**
+  * Represents part of a jpath.
+  *
+  */
 sealed trait JPart {
 
   final def asPath = JPath(this)
+
+  final def +:(other : JPath) = JPath(this +: other.path)
+
+  final def :+(other : JPath) = JPath(other.path :+ this)
 
   final def asMatcher(filter: JPredicate = JPredicate.matchAll): JPredicate = asPath.asMatcher(filter)
 
@@ -18,6 +26,23 @@ sealed trait JPart {
   final def or(other: JPredicate): JPredicate = asMatcher().or(other)
 
   final def or(other: JPart): JPredicate = or(other.asMatcher())
+
+  final def asPos: Option[JPos] = this match {
+    case p : JPos => Option(p)
+    case _ => None
+  }
+  final def asField: Option[JField] = this match {
+    case p : JField => Option(p)
+    case _ => None
+  }
+  final def asFind: Option[JArrayFind] = this match {
+    case p : JArrayFind => Option(p)
+    case _ => None
+  }
+  final def asFilter: Option[JFilter] = this match {
+    case p : JFilter => Option(p)
+    case _ => None
+  }
 }
 
 object JPart {

@@ -9,10 +9,18 @@ import io.circe.{Json, _}
 import scala.language.implicitConversions
 import scala.util.Try
 
+/**
+  * Represents something which can match some Json
+  */
 sealed trait JPredicate { self =>
 
+  /** @param json the json to match
+    * @return true if this predicate matches the given json
+    */
   def matches(json: Json): Boolean
 
+  /** @return a json representation of this predicate
+    */
   def json: Json
 
   def and(other: JPredicate, theRest: JPredicate*): JPredicate =
@@ -23,7 +31,7 @@ sealed trait JPredicate { self =>
 
   def unary_! : JPredicate = Not(this)
 
-  def inArray = JArrayFind(this)
+  final def inArray = JArrayFind(this)
 }
 
 object JPredicate {
@@ -42,6 +50,8 @@ object JPredicate {
 
   trait LowPriorityPredicateImplicits {
 
+    implicit def boolAsJson(b: Boolean) = Json.fromBoolean(b)
+
     implicit def stringAsJson(s: String) = Json.fromString(s)
 
     implicit def intAsJson(i: Int) = Json.fromInt(i)
@@ -52,41 +62,50 @@ object JPredicate {
     }
 
     implicit class RichJsonField(field: String) {
-      private implicit def predAsJFilter(p: JPredicate): JFilter = JFilter(field, p)
+      private implicit def predAsJFilter(p: JPredicate): JPath = {
+        val path = field.asJPath.path
+        val opt = path.last.asField.map(_.name).map { lastFieldName =>
+          val prefix: List[JPart] = path.init
+
+          val filter = JFilter(lastFieldName, p)
+          JPath(prefix :+ filter)
+        }
+        opt.getOrElse(JFilter(field, p).asPath)
+      }
 
       def asJPath = JPath(field)
 
       def asJField = JField(field)
 
-      def !(other: JPredicate): JFilter = Not(other)
+      def !(other: JPredicate): JPath = Not(other)
 
-      def =!=[J](value: J)(implicit ev: J => Json): JFilter = Not(Eq(value))
+      def =!=[J](value: J)(implicit ev: J => Json): JPath = Not(Eq(value))
 
-      def !==[J](value: J)(implicit ev: J => Json): JFilter = {
+      def !==[J](value: J)(implicit ev: J => Json): JPath = {
         =!=(value)
       }
 
-      def ===[J](value: J)(implicit ev: J => Json): JFilter = Eq(value)
+      def ===[J](value: J)(implicit ev: J => Json): JPath = Eq(value)
 
-      def equalTo[J](value: J)(implicit ev: J => Json): JFilter = Eq(value)
+      def equalTo[J](value: J)(implicit ev: J => Json): JPath = Eq(value)
 
-      def before(time: String): JFilter = Before(time)
+      def before(time: String): JPath = Before(time)
 
-      def after(time: String): JFilter = After(time)
+      def after(time: String): JPath = After(time)
 
-      def gt[J](value: J)(implicit ev: J => Json): JFilter = Gt(value)
+      def gt[J](value: J)(implicit ev: J => Json): JPath = Gt(value)
 
-      def lt[J](value: J)(implicit ev: J => Json): JFilter = Lt(value)
+      def lt[J](value: J)(implicit ev: J => Json): JPath = Lt(value)
 
-      def gte[J](value: J)(implicit ev: J => Json): JFilter = Gte(value)
+      def gte[J](value: J)(implicit ev: J => Json): JPath = Gte(value)
 
-      def lte[J](value: J)(implicit ev: J => Json): JFilter = Lte(value)
+      def lte[J](value: J)(implicit ev: J => Json): JPath = Lte(value)
 
-      def ~=(regex: String): JFilter = JRegex(regex)
+      def ~=(regex: String): JPath = JRegex(regex)
 
-      def includes[J](items: Set[J])(implicit ev: J => Json): JFilter = JIncludes(items.map(ev))
+      def includes[J](items: Set[J])(implicit ev: J => Json): JPath = JIncludes(items.map(ev))
 
-      def includes[J](first: J, theRest: J*)(implicit ev: J => Json): JFilter =
+      def includes[J](first: J, theRest: J*)(implicit ev: J => Json): JPath =
         includes(theRest.toSet + first)
     }
 

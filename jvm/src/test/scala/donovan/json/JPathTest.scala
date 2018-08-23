@@ -104,7 +104,7 @@ class JPathTest extends BaseJsonSpec {
       import io.circe.syntax._
 
       val path        = JPath.forParts("groot", "list") :+ 3
-      val complexPath = path :+ ("value".inArray) :+ ("someInt" gte 9)
+      val complexPath = path :+ ("value".inArray) :++ ("someInt" gte 9)
 
       val json = complexPath.asJson.spaces4
 
@@ -214,7 +214,7 @@ class JPathTest extends BaseJsonSpec {
                  }
               }
             }"""
-      val removed = (JPath("foo", "bar") :+ ("list" includes 2)).removeFrom(json).get
+      val removed = (JPath("foo", "bar") ++ ("list" includes 2)).removeFrom(json).get
       removed shouldBe
         json"""{
               "foo" : {
@@ -224,7 +224,7 @@ class JPathTest extends BaseJsonSpec {
               }
             }"""
 
-      (JPath("foo", "bar") :+ ("list" includes 4)).removeFrom(json) shouldBe None
+      (JPath("foo", "bar") ++ ("list" includes 4)).removeFrom(json) shouldBe None
 
     }
     "remove values from an object array" in {
@@ -294,9 +294,9 @@ class JPathTest extends BaseJsonSpec {
       val json: Json = json"""{ "some-field" : 456 }"""
 
       import JPredicate.implicits._
-      val found = JPath.select(("some-field" equalTo 456) :: Nil, json.hcursor)
+      val found = JPath.select(("some-field" equalTo 456).path, json.hcursor)
       found.succeeded shouldBe true
-      val found2 = JPath.select(("some-field" equalTo 789) :: Nil, json.hcursor)
+      val found2 = JPath.select(("some-field" equalTo 789).path, json.hcursor)
       found2.succeeded shouldBe false
     }
   }

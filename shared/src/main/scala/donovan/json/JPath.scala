@@ -1,6 +1,6 @@
 package donovan.json
 
-import donovan.json.JPath.select
+import donovan.json.JPath.{JsonFormat, select}
 import io.circe.Decoder.Result
 import io.circe._
 
@@ -11,12 +11,15 @@ case class JPath(path: List[JPart]) {
 
   def ++(other: JPath): JPath = copy(path = path ++ other.path)
 
+  def :++[T](other: JPath) : JPath = copy(path = path ++ other.path)
+  def ++:[T](other: JPath) : JPath = copy(path = other.path ++ path)
+
   def +:[T](other: T)(implicit ev: T => JPart): JPath = copy(path = ev(other) +: path)
 
   def :+[T](other: T)(implicit ev: T => JPart): JPath = copy(path = path :+ ev(other))
 
   def json: Json = {
-    new EncoderOps(this).asJson
+    new EncoderOps(this).asJson(JsonFormat)
   }
 
   def apply(json: Json): Option[Json] = selectValue(json)
@@ -72,10 +75,10 @@ object JPath {
   def forParts(first: String, theRest: String*): JPath = forParts(first :: theRest.toList)
 
   def forParts(parts: List[String]): JPath =
-    JPath(parts.map {
-      case IntR(i)      => JPos(i.toInt)
-      case ValueR(f, v) => f === Json.fromString(v)
-      case name         => JField(name)
+    JPath(parts.flatMap {
+      case IntR(i)      => JPos(i.toInt).asPath.path
+      case ValueR(f, v) => (f === Json.fromString(v)).path
+      case name         => JField(name).asPath.path
     })
 
   def fromJson(jsonString: String): JPath = {

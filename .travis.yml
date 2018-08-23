@@ -4,7 +4,7 @@ scala:
    - 2.11.11
 
 script:
-  - sbt ++$TRAVIS_SCALA_VERSION -jvm-opts travis/jvmopts clean coverage test coverageReport makeSite
+  - sbt ++$TRAVIS_SCALA_VERSION -jvm-opts travis/jvmopts clean coverage test coverageReport
 jdk:
     - oraclejdk8
 

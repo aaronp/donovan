@@ -1,5 +1,6 @@
 import sbt.Keys.{publishMavenStyle, publishTo}
 import sbtcrossproject.CrossPlugin.autoImport.crossProject
+import scoverage.ScoverageKeys.coverageFailOnMinimum
 
 val repo = "donovan"
 name := repo
@@ -72,6 +73,8 @@ lazy val donovan = crossProject(JSPlatform, JVMPlatform)
   .settings(commonSettings: _*)
   .jvmSettings(
     libraryDependencies ++= Dependencies.JVM.value,
+    coverageMinimum := 75,
+    coverageFailOnMinimum := true,
     addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full)
   )
   .jsSettings(
@@ -117,9 +120,6 @@ git.gitTagToVersionNumber := { tag: String =>
     Some(tag)
   } else None
 }
-
-coverageMinimum := 75
-coverageFailOnMinimum := true
 
 // see http://scalameta.org/scalafmt/
 scalafmtOnCompile in ThisBuild := true

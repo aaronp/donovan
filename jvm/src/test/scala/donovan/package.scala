@@ -2,7 +2,7 @@ import com.typesafe.config.{ConfigFactory, ConfigRenderOptions}
 import io.circe.Json
 package object donovan {
 
-  def hoconAsJson(jsonText : String): Json = {
+  def hoconAsJson(jsonText: String): Json = {
     val jsonString = ConfigFactory
       .parseString(jsonText)
       .root
