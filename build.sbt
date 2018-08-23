@@ -1,4 +1,4 @@
-import sbt.Keys.{publishMavenStyle, publishTo}
+import sbt.Keys.{organization, publishMavenStyle, publishTo}
 import sbtcrossproject.CrossPlugin.autoImport.crossProject
 import scoverage.ScoverageKeys.coverageFailOnMinimum
 import ReleaseTransformations._
@@ -20,7 +20,12 @@ enablePlugins(GitVersioning)
 
 addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.3")
 
-crossScalaVersions := Seq(scalaTwelve) //scalaEleven,
+inThisBuild(
+  Seq(
+    crossScalaVersions := Seq(scalaTwelve), //scalaEleven,
+    organization := s"com.github.${username}",
+    scalaVersion := defaultScalaVersion
+  ))
 
 test in assembly := {}
 
@@ -28,7 +33,6 @@ lazy val noPublishSettings = skip in publish := true
 
 // https://github.com/xerial/sbt-sonatype
 lazy val publishSettings = Seq(
-  organization := s"com.github.${username}",
   publishMavenStyle := true,
   releaseCrossBuild := true,
   releaseProcess := Seq[ReleaseStep](
@@ -82,13 +86,14 @@ lazy val commonSettings = publishSettings
 lazy val root = project
   .in(file("."))
   .aggregate(donovanJS, donovanJVM)
-  .dependsOn(donovanJS, donovanJVM)
+  //.dependsOn(donovanJS, donovanJVM)
   .settings(commonSettings: _*)
   .settings(noPublishSettings)
 
 lazy val donovan = crossProject(JSPlatform, JVMPlatform)
   .in(file("."))
-  .settings(name := "donovan")
+  .settings(name := repo)
+  .settings(moduleName := repo)
   .settings(commonSettings: _*)
   .jvmSettings(
     libraryDependencies ++= Dependencies.JVM.value,
@@ -105,8 +110,6 @@ lazy val donovan = crossProject(JSPlatform, JVMPlatform)
 lazy val donovanJVM = donovan.jvm
 lazy val donovanJS  = donovan.js
 
-organization := s"com.github.${username}"
-scalaVersion := defaultScalaVersion
 resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
 autoAPIMappings := true
 exportJars := false
