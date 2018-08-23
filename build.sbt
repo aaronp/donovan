@@ -1,6 +1,7 @@
 import sbt.Keys.{publishMavenStyle, publishTo}
 import sbtcrossproject.CrossPlugin.autoImport.crossProject
 import scoverage.ScoverageKeys.coverageFailOnMinimum
+import ReleaseTransformations._
 
 val repo = "donovan"
 name := repo
@@ -25,8 +26,25 @@ test in assembly := {}
 
 lazy val noPublishSettings = skip in publish := true
 
+// https://github.com/xerial/sbt-sonatype
 lazy val publishSettings = Seq(
   publishMavenStyle := true,
+  releaseCrossBuild := true,
+  releaseProcess := Seq[ReleaseStep](
+    checkSnapshotDependencies,
+    inquireVersions,
+    runClean,
+    runTest,
+    setReleaseVersion,
+    commitReleaseVersion,
+    tagRelease,
+    // For non cross-build projects, use releaseStepCommand("publishSigned")
+    releaseStepCommandAndRemaining("+publishSigned"),
+    setNextVersion,
+    commitNextVersion,
+    releaseStepCommand("sonatypeReleaseAll"),
+    pushChanges
+  ),
   // see https://leonard.io/blog/2017/01/an-in-depth-guide-to-deploying-to-maven-central/
   pomIncludeRepository := (_ => false),
   // To sync with Maven central, you need to supply the following information:
