@@ -1,7 +1,5 @@
-import sbt._
 import org.portablescala.sbtplatformdeps.PlatformDepsPlugin.autoImport._
-import sbtcrossproject.CrossPlugin.autoImport.{crossProject, CrossType, _}
-import scalajscrossproject.ScalaJSCrossPlugin.autoImport._
+import sbt._
 object Dependencies {
 
   val config = "com.typesafe" % "config" % "1.3.0" % "test"

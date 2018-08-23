@@ -188,39 +188,50 @@ object JExpression {
   object implicits extends LowPriorityJExpressionImplicits
   implicit def foo: Encoder[JExpression] with Decoder[JExpression] = ???
 
-//  implicit object JExpressionFormat extends Encoder[JExpression] with Decoder[JExpression] {
-//    override def apply(exp: JExpression): Json = {
-//      exp match {
-//        case value: JMergeExpression   => JMergeExpression.JsonFormat(value)
-//        case value: JNumericExpression => JNumericExpression.JsonFormat(value)
-//        case value: JPathExpression =>
-//          import io.circe.generic.auto._
-//          value.asJson
-//        case value: JStringExpression => JStringExpression.JsonFormat(value)
-//        case value: JConstantExpression =>
-//          import io.circe.generic.auto._
-//          value.asJson
-//      }
-//    }
-//
-//    override def apply(c: HCursor): Result[JExpression] = {
-//      import cats.syntax.either._
-//      import io.circe.generic.auto._
-//
-//      // format: off
-//      c.as[JMergeExpression](JMergeExpression.JsonFormat).
-//        orElse(c.as[JNumericExpression](JNumericExpression.JsonFormat)).
-//        orElse(c.as[JPathExpression]).
-//        orElse(c.as[JStringExpression](JStringExpression.JsonFormat)).
-//        orElse(c.as[JConstantExpression])
-//      // format: on
-//    }
-//  }
+  implicit object JExpressionFormat extends Encoder[JExpression] with Decoder[JExpression] {
+    override def apply(exp: JExpression): Json = {
+      exp match {
+        case value: JMergeExpression   => JMergeExpression.JsonFormat(value)
+        case value: JNumericExpression => JNumericExpression.JsonFormat(value)
+        case value: JPathExpression    => JPathExpression.JsonFormat(value)
+        case value: JStringExpression => JStringExpression.JsonFormat(value)
+        case value: JConstantExpression =>
+          import io.circe.generic.auto._
+          value.asJson
+      }
+    }
+
+    override def apply(c: HCursor): Result[JExpression] = {
+      import cats.syntax.either._
+      import io.circe.generic.auto._
+
+      // format: off
+      c.as[JMergeExpression](JMergeExpression.JsonFormat).
+        orElse(c.as[JNumericExpression](JNumericExpression.JsonFormat)).
+        orElse(c.as[JPathExpression]).
+        orElse(c.as[JStringExpression](JStringExpression.JsonFormat)).
+        orElse(c.as[JConstantExpression])
+      // format: on
+    }
+  }
 
 }
 
-case class JPathExpression(selectPath: JPath) extends JExpression {
-  override def eval(json: Json): Option[Json] = selectPath.selectValue(json)
+case class JPathExpression(select: JPath) extends JExpression {
+  override def eval(json: Json): Option[Json] = select.selectValue(json)
+}
+object JPathExpression {
+
+  implicit object JsonFormat extends Encoder[JPathExpression] with Decoder[JPathExpression] {
+
+    override def apply(exp: JPathExpression): Json = {
+      Json.obj("select" -> exp.select.asJson)
+    }
+
+    override def apply(c: HCursor): Result[JPathExpression] = {
+      c.downField("select").as[JPath].map(JPathExpression.apply)
+    }
+  }
 }
 
 case class JConstantExpression(const: Option[Json]) extends JExpression {
@@ -246,8 +257,7 @@ object JMergeExpression {
 
     override def apply(c: HCursor): Result[JMergeExpression] = {
       c.downField("merge").downField("lhs").as[JExpression].right.flatMap { lhsExpr =>
-        c.downField("merge").downField("rhs").as[JExpression].right.map { rhs =>
-          JMergeExpression(lhsExpr, rhs)
+        c.downField("merge").downField("rhs").as[JExpression].right.map { rhs => JMergeExpression(lhsExpr, rhs)
         }
       }
     }
@@ -277,8 +287,7 @@ object JStringExpression {
 
     override def apply(c: HCursor): Result[JStringExpression] = {
       c.downField("concat").downField("lhs").as[JExpression].right.flatMap { lhsExpr =>
-        c.downField("concat").downField("rhs").as[JExpression].right.map { rhs =>
-          JStringExpression(lhsExpr, rhs, ConcatString)
+        c.downField("concat").downField("rhs").as[JExpression].right.map { rhs => JStringExpression(lhsExpr, rhs, ConcatString)
         }
       }
     }
@@ -310,8 +319,7 @@ object JNumericExpression {
     override def apply(c: HCursor): Result[JNumericExpression] = {
       def asExpr(cursor: ACursor, op: NumOp) = {
         cursor.downField("lhs").as[JExpression].flatMap { lhs =>
-          cursor.downField("rhs").as[JExpression].map { rhs =>
-            JNumericExpression(lhs, rhs, op)
+          cursor.downField("rhs").as[JExpression].map { rhs => JNumericExpression(lhs, rhs, op)
           }
         }
       }
