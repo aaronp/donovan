@@ -28,7 +28,7 @@ object NumOp {
     }
 
     override def apply(c: HCursor): Result[NumOp] = {
-      c.as[String].flatMap {
+      c.as[String].right.flatMap {
         case "+"   => Right(AddOp)
         case "-"   => Right(SubstractOp)
         case "*"   => Right(MultiplyOp)
@@ -108,7 +108,7 @@ object StrOp {
     }
 
     override def apply(c: HCursor): Result[StrOp] = {
-      c.as[String].flatMap {
+      c.as[String].right.flatMap {
         case "concat" => Right(ConcatString)
         case other    => Left(DecodingFailure(s"Expected one of 'concat', but got $other", c.history))
       }
@@ -229,7 +229,7 @@ object JPathExpression {
     }
 
     override def apply(c: HCursor): Result[JPathExpression] = {
-      c.downField("select").as[JPath].map(JPathExpression.apply)
+      c.downField("select").as[JPath].right.map(JPathExpression.apply)
     }
   }
 }
@@ -318,8 +318,8 @@ object JNumericExpression {
 
     override def apply(c: HCursor): Result[JNumericExpression] = {
       def asExpr(cursor: ACursor, op: NumOp) = {
-        cursor.downField("lhs").as[JExpression].flatMap { lhs =>
-          cursor.downField("rhs").as[JExpression].map { rhs => JNumericExpression(lhs, rhs, op)
+        cursor.downField("lhs").as[JExpression].right.flatMap { lhs =>
+          cursor.downField("rhs").as[JExpression].right.map { rhs => JNumericExpression(lhs, rhs, op)
           }
         }
       }

@@ -8,7 +8,7 @@ name := repo
 val username            = "aaronp"
 val scalaEleven         = "2.11.8"
 val scalaTwelve         = "2.12.6"
-val defaultScalaVersion = scalaTwelve
+val defaultScalaVersion = scalaEleven
 
 // see https://github.com/sbt/sbt-ghpages
 // this exposes the 'ghpagesPushSite' task
@@ -39,7 +39,7 @@ lazy val publishSettings = Seq(
     commitReleaseVersion,
     tagRelease,
     // For non cross-build projects, use releaseStepCommand("publishSigned")
-    releaseStepCommandAndRemaining("publishSigned"),
+    releaseStepCommandAndRemaining("+publishSigned"),
     setNextVersion,
     commitNextVersion,
     releaseStepCommand("sonatypeReleaseAll"),

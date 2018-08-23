@@ -31,12 +31,12 @@ class JPredicateTest extends BaseJsonSpec {
 
   "<string>.asPath" should {
     "parse nested arrays" in {
-      val p2 = "foo.array[1][2].nested".asJPath
-      println(p2)
+      val actual = "foo.array[1][2].nested".asJPath
+      actual shouldBe JPath(List(JField("foo"), JField("array"), JPos(1), JPos(2), JField("nested")))
     }
     "parse wildcards " in {
-      val p2 = "foo.array[*].nested".asJPath
-      println(p2)
+      val actual = "foo.array[*].nested".asJPath
+      actual shouldBe JPath(List(JField("foo"), JField("array"), JArrayFind(JPredicate.matchAll), JField("nested")))
     }
   }
 

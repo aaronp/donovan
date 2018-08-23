@@ -11,8 +11,8 @@ case class JPath(path: List[JPart]) {
 
   def ++(other: JPath): JPath = copy(path = path ++ other.path)
 
-  def :++[T](other: JPath) : JPath = copy(path = path ++ other.path)
-  def ++:[T](other: JPath) : JPath = copy(path = other.path ++ path)
+  def :++[T](other: JPath): JPath = copy(path = path ++ other.path)
+  def ++:[T](other: JPath): JPath = copy(path = other.path ++ path)
 
   def +:[T](other: T)(implicit ev: T => JPart): JPath = copy(path = ev(other) +: path)
 
@@ -27,14 +27,12 @@ case class JPath(path: List[JPart]) {
   def selectValue(json: Json): Option[Json] = JPath.select(path, json.hcursor).focus
 
   def selectJson(json: Json): Option[Json] = {
-    selectValue(json).map { value =>
-      JPath.selectJson(path, value)
+    selectValue(json).map { value => JPath.selectJson(path, value)
     }
   }
 
   def appendTo[T: Encoder](json: Json, value: T): Option[Json] = {
-    val opt = JPath.select(path, json.hcursor).withFocus { json =>
-      deepMergeWithArrayConcat(json, implicitly[Encoder[T]].apply(value))
+    val opt = JPath.select(path, json.hcursor).withFocus { json => deepMergeWithArrayConcat(json, implicitly[Encoder[T]].apply(value))
     }
     opt.top
   }
@@ -52,7 +50,10 @@ object JPath {
 
   def apply(first: JPart, parts: JPart*): JPath = JPath(first :: parts.toList)
 
-  def apply(only: String): JPath = forParts(only.split("\\.", -1).map(_.trim).filterNot(_.isEmpty).toList)
+  def apply(only: String): JPath = {
+    val segments = only.split("\\.", -1).map(_.trim).filterNot(_.isEmpty).toList
+    forParts(segments)
+  }
 
   def apply(first: String, second: String, parts: String*): JPath = {
     forParts(first :: second :: parts.toList)
@@ -75,11 +76,17 @@ object JPath {
   def forParts(first: String, theRest: String*): JPath = forParts(first :: theRest.toList)
 
   def forParts(parts: List[String]): JPath =
-    JPath(parts.flatMap {
-      case IntR(i)      => JPos(i.toInt).asPath.path
-      case ValueR(f, v) => (f === Json.fromString(v)).path
-      case name         => JField(name).asPath.path
-    })
+    JPath(parts.flatMap(parseSegment))
+
+  private def parseSegment(segment: String): List[JPart] = {
+    segment match {
+      case IntR(i)           => JPos(i.toInt).asPath.path
+      case ValueR(f, v)      => (f === Json.fromString(v)).path
+      case ArrayR(name, "*") => parseSegment(name) :+ JArrayFind(JPredicate.matchAll)
+      case ArrayR(name, num) => parseSegment(name) :+ JPos(num.toInt)
+      case name => JField(name).asPath.path
+    }
+  }
 
   def fromJson(jsonString: String): JPath = {
 
@@ -99,8 +106,7 @@ object JPath {
       case Nil                   => cursor
       case JField(field) :: tail => cursor.downField(field).withHCursor(select(tail, _))
       case JPos(pos) :: tail =>
-        cursor.downArray.withHCursor { ac =>
-          ac.rightN(pos).withHCursor(select(tail, _))
+        cursor.downArray.withHCursor { ac => ac.rightN(pos).withHCursor(select(tail, _))
         }
       case JArrayFind(predicate) :: tail =>
         cursor.downArray.withHCursor { c =>
@@ -148,6 +154,7 @@ object JPath {
     }
   }
 
+  private val ArrayR = "(.*)\\[(.+)\\]".r
   private val IntR   = "(\\d+)".r
   private val ValueR = "(.*)=(.*)".r
 }
