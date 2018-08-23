@@ -17,13 +17,11 @@ trait BaseJsonSpec extends WordSpec with Matchers with ScalaFutures with BeforeA
 
   implicit class HoconHelper(sc: StringContext) {
     def hocon(args: Any*) = {
-      val jsonString = ConfigFactory
-        .parseString(sc.s(args: _*))
-        .root
-        .render(ConfigRenderOptions.concise().setJson(true))
-      _root_.io.circe.parser.parse(jsonString).right.get
+      val jsonText: String = sc.s(args: _*)
+      hoconAsJson(jsonText)
     }
   }
+
   implicit class ConfigHelper(sc: StringContext) {
     def conf(args: Any*): Config = {
       ConfigFactory.parseString(sc.s(args: _*))
