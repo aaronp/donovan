@@ -39,7 +39,7 @@ lazy val publishSettings = Seq(
     commitReleaseVersion,
     tagRelease,
     // For non cross-build projects, use releaseStepCommand("publishSigned")
-    releaseStepCommandAndRemaining("+publishSigned"),
+    releaseStepCommandAndRemaining("publishSigned"),
     setNextVersion,
     commitNextVersion,
     releaseStepCommand("sonatypeReleaseAll"),
