@@ -29,4 +29,5 @@ To build a new release:
 ```
 sbt release
 sbt publishSigned
+sbt sonatypeRelease
 ```
