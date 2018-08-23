@@ -1,4 +1,5 @@
-import sbtcrossproject.CrossPlugin.autoImport.{crossProject, CrossType}
+import sbt.Keys.{publishMavenStyle, publishTo}
+import sbtcrossproject.CrossPlugin.autoImport.crossProject
 
 val repo = "donovan"
 name := repo
@@ -27,10 +28,42 @@ lazy val root = project
     publishLocal := {}
   )
 
+test in assembly := {}
+
 lazy val donovan = crossProject
   .in(file("."))
   .settings(
-    name := "donovan"
+    name := "donovan",
+    publishMavenStyle := true,
+// see https://leonard.io/blog/2017/01/an-in-depth-guide-to-deploying-to-maven-central/
+    pomIncludeRepository := (_ => false),
+// To sync with Maven central, you need to supply the following information:
+    pomExtra in Global := {
+      <url>https://github.com/${username}/${repo}
+  </url>
+    <licenses>
+      <license>
+        <name>Apache 2</name>
+        <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      </license>
+    </licenses>
+    <developers>
+      <developer>
+        <id>${username}</id>
+        <name>Aaron Pritzlaff</name>
+        <url>https://github.com/${username}/${repo}
+        </url>
+      </developer>
+    </developers>
+    },
+    credentials += Credentials(Path.userHome / ".sbt" / ".credentials"),
+    publishTo := {
+      val nexus = "https://oss.sonatype.org/"
+      if (isSnapshot.value)
+        Some("snapshots" at nexus + "content/repositories/snapshots")
+      else
+        Some("releases" at nexus + "service/local/staging/deploy/maven2")
+    }
   )
   .jvmSettings(
     libraryDependencies ++= Dependencies.JVM.value,
@@ -59,16 +92,6 @@ assemblyMergeStrategy in assembly := {
   case x =>
     val oldStrategy = (assemblyMergeStrategy in assembly).value
     oldStrategy(x)
-}
-
-credentials += Credentials(Path.userHome / ".sbt" / ".credentials")
-
-publishTo := {
-  val nexus = "https://oss.sonatype.org/"
-  if (isSnapshot.value)
-    Some("snapshots" at nexus + "content/repositories/snapshots")
-  else
-    Some("releases" at nexus + "service/local/staging/deploy/maven2")
 }
 
 packageOptions in (Compile, packageBin) += Package.ManifestAttributes("git-sha" -> git.gitHeadCommit.value.getOrElse("unknown"))
@@ -143,32 +166,3 @@ scalacOptions ++= List(
   "-language:implicitConversions", // Allow definition of implicit functions called views
   "-unchecked"
 )
-
-test in assembly := {}
-
-publishMavenStyle := true
-
-// see https://leonard.io/blog/2017/01/an-in-depth-guide-to-deploying-to-maven-central/
-pomIncludeRepository := (_ => false)
-
-// To sync with Maven central, you need to supply the following information:
-pomExtra in Global := {
-  <url>https://github.com/${username}/${repo}
-  </url>
-    <licenses>
-      <license>
-        <name>Apache 2</name>
-        <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-      </license>
-    </licenses>
-    <developers>
-      <developer>
-        <id>
-          ${username}
-        </id>
-        <name>Aaron Pritzlaff</name>
-        <url>https://github.com/${username}/${repo}
-        </url>
-      </developer>
-    </developers>
-}
