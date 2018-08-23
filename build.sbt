@@ -28,6 +28,7 @@ lazy val noPublishSettings = skip in publish := true
 
 // https://github.com/xerial/sbt-sonatype
 lazy val publishSettings = Seq(
+  organization := s"com.github.${username}",
   publishMavenStyle := true,
   releaseCrossBuild := true,
   releaseProcess := Seq[ReleaseStep](
