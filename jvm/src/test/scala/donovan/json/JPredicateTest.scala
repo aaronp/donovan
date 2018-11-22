@@ -1,6 +1,7 @@
 package donovan.json
 
 import donovan.BaseJsonSpec
+import donovan.time.{TimeCoords, Timestamp}
 import io.circe._
 
 class JPredicateTest extends BaseJsonSpec {
@@ -117,7 +118,12 @@ class JPredicateTest extends BaseJsonSpec {
     }
   }
   "Before" should {
-    "evaluate 'time' before '1 minute ago' " in {}
+    "evaluate 'time' before '1 minute ago' " in {
+      val sixtyOneSecondsAgo: Timestamp = TimeCoords.nowUTC().minus(java.time.Duration.ofSeconds(61))
+      val json = donovan.hoconAsJson("value : \"" + sixtyOneSecondsAgo + "\"")
+
+      ("value" before "1 minute ago").asMatcher().matches(json) shouldBe true
+    }
   }
   "json includes" should {
 
