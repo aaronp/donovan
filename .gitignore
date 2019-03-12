@@ -1,4 +1,5 @@
 target
+*.class
 *.gz
 *.log
 .DS_Store

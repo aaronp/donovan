@@ -4,7 +4,7 @@ import donovan.json.JPath.{JsonFormat, select}
 import io.circe.Decoder.Result
 import io.circe._
 
-case class JPath(path: List[JPart]) {
+final case class JPath(path: List[JPart]) {
 
   import io.circe._
   import io.circe.syntax._
@@ -14,9 +14,17 @@ case class JPath(path: List[JPart]) {
   def :++[T](other: JPath): JPath = copy(path = path ++ other.path)
   def ++:[T](other: JPath): JPath = copy(path = other.path ++ path)
 
-  def +:[T](other: T)(implicit ev: T => JPart): JPath = copy(path = ev(other) +: path)
+  def +:[T](other: T)(implicit ev: T <:< JPart): JPath = copy(path = ev(other) +: path)
 
-  def :+[T](other: T)(implicit ev: T => JPart): JPath = copy(path = path :+ ev(other))
+  def :+(other: JPart): JPath = copy(path = path :+ other)
+
+  /**
+    * @param condition the condition to apply to the last field
+    * @return a new JPath with the given condition applied to the last element of this JPath, if there is a last element
+    */
+  def :+(condition: JPredicate) = withCondition(condition)
+
+  def withCondition(condition: JPredicate) = JPath(path :+ JFilter(condition))
 
   def json: Json = {
     new EncoderOps(this).asJson(JsonFormat)
@@ -24,22 +32,147 @@ case class JPath(path: List[JPart]) {
 
   def apply(json: Json): Option[Json] = selectValue(json)
 
+  /** e.g. given the JPath ("x" :: "y" :: "z")
+    *
+    * and the json input
+    * {{{
+    *   x : {
+    *     y : {
+    *       z : 1
+    *       flag : true
+    *     }
+    *   }
+    * }}}
+    *
+    * this function would return JsonInt(1)
+    *
+    * @param json the json to select
+    * @return the json value identified by the given path, if it exists
+    */
   def selectValue(json: Json): Option[Json] = JPath.select(path, json.hcursor).focus
 
+  /**  e.g. given the JPath ("x" :: "y" :: "z")
+    *
+    * and the json input
+    * {{{
+    *   x : {
+    *     y : {
+    *       z : 1
+    *       flag : true
+    *     }
+    *   }
+    * }}}
+    *
+    * this function would return the json object:
+    *
+    *      {{{
+    *        x : {
+    *          y : {
+    *            z : 1
+    *         }
+    *        }
+    *      }}}
+    *
+    * @param json the just to select
+    * @return the full json path containing the json value, if it exists
+    */
   def selectJson(json: Json): Option[Json] = {
-    selectValue(json).map { value => JPath.selectJson(path, value)
+    selectValue(json).map { value =>
+      JPath.selectJson(path, value)
     }
   }
 
+  /** Adds the given value T to the target json 'json' at this path.
+    *
+    * e.g. consider the json
+    *
+    * {{{
+    * { foo : [1,2] }
+    * }}}
+    *
+    * Then calling
+    * {{{
+    *   JPath("foo").appendTo(json, 3)
+    *   // returns { foo : [1,2,3] }
+    *
+    *   JPath("bar", "baz").appendTo(json, { doc : { ument : true } })
+    *   // returns :
+    *   {
+    *     foo : [1,2],
+    *     bar : {
+    *       baz : {
+    *         doc : {
+    *           ument : true
+    *         }
+    *       }
+    *     }
+    *   }
+    * }}}
+    *
+    * @param json
+    * @param value
+    * @tparam T
+    * @return
+    */
   def appendTo[T: Encoder](json: Json, value: T): Option[Json] = {
-    val opt = JPath.select(path, json.hcursor).withFocus { json => deepMergeWithArrayConcat(json, implicitly[Encoder[T]].apply(value))
+    val opt = JPath.select(path, json.hcursor).withFocus { json =>
+      deepMergeWithArrayConcat(json, implicitly[Encoder[T]].apply(value))
     }
     opt.top
   }
 
+  /**
+    * @param json the input json from which the json should be removed
+    * @return a new json instance with the given path removed, if the path exists in the input json
+    */
   def removeFrom(json: Json): Option[Json] = select(path, json.hcursor).delete.top
 
-  def asMatcher(filter: JPredicate = JPredicate.matchAll) = JPredicate(this, filter)
+  def matches(json: Json, filter: JPredicate = JPredicate.matchAll): Boolean = {
+    asMatcher(filter).matches(json)
+  }
+
+  def asMatcher(filter: JPredicate = JPredicate.matchAll): JPredicate = JPredicate(this, filter)
+
+  def and(other: JPredicate, theRest: JPredicate*) = asMatcher().and(other, theRest: _*)
+
+  def or(other: JPredicate, theRest: JPredicate*) = asMatcher().or(other, theRest: _*)
+
+  def !(other: JPredicate): JPath = withCondition(Not(other))
+
+  def =!=(value: Json): JPath = withCondition(Not(Eq(value)))
+
+  def !==(value: Json): JPath = withCondition(=!=(value))
+
+  def ===(value: Json): JPath = equalTo(value)
+  def ===(value: JPath)       = equalTo(value)
+
+  def equalTo(value: Json): JPath = withCondition(Eq(value))
+  def equalTo(value: JPath)       = ComparePredicate(this, value, Op.Equals)
+
+  def isBefore(time: String): JPath = withCondition(Before(time))
+  def isBefore(value: JPath)        = ComparePredicate(this, value, Op.Before)
+
+  def isAfter(time: String): JPath = withCondition(After(time))
+  def isAfter(value: JPath)        = ComparePredicate(this, value, Op.After)
+
+  def gt(value: Json): JPath = withCondition(Gt(value))
+  def gt(value: JPath)       = ComparePredicate(this, value, Op.GT)
+
+  def lt(value: Json): JPath = withCondition(Lt(value))
+  def lt(value: JPath)       = ComparePredicate(this, value, Op.LT)
+
+  def gte[J](value: J)(implicit ev: J => Json): JPath = withCondition(Gte(ev(value)))
+  def gte(value: JPath)                               = ComparePredicate(this, value, Op.GTE)
+
+  def lte(value: Json): JPath       = withCondition(Lte(value))
+  def lte(value: JPath): JPredicate = ComparePredicate(this, value, Op.LTE)
+
+  def ~=(regex: String): JPath = withCondition(JRegex(regex))
+
+  def includes[J](items: Set[J])(implicit ev: J => Json): JPath = withCondition(JIncludes(items.map(ev)))
+
+  def includes[J](first: J, theRest: J*)(implicit ev: J => Json): JPath = includes(theRest.toSet + first)
+
 }
 
 object JPath {
@@ -81,10 +214,10 @@ object JPath {
   private def parseSegment(segment: String): List[JPart] = {
     segment match {
       case IntR(i)           => JPos(i.toInt).asPath.path
-      case ValueR(f, v)      => (f === Json.fromString(v)).path
+      case ValueR(f, v)      => (f.asJPath === Json.fromString(v)).path
       case ArrayR(name, "*") => parseSegment(name) :+ JArrayFind(JPredicate.matchAll)
       case ArrayR(name, num) => parseSegment(name) :+ JPos(num.toInt)
-      case name => JField(name).asPath.path
+      case name              => JField(name).asPath.path
     }
   }
 
@@ -106,20 +239,19 @@ object JPath {
       case Nil                   => cursor
       case JField(field) :: tail => cursor.downField(field).withHCursor(select(tail, _))
       case JPos(pos) :: tail =>
-        cursor.downArray.withHCursor { ac => ac.rightN(pos).withHCursor(select(tail, _))
+        cursor.downArray.withHCursor { ac =>
+          ac.rightN(pos).withHCursor(select(tail, _))
         }
       case JArrayFind(predicate) :: tail =>
         cursor.downArray.withHCursor { c =>
           val found = c.find(predicate.matches)
           found.withHCursor(select(tail, _))
         }
-      case JFilter(field, predicate) :: tail =>
-        cursor.downField(field).withHCursor { c =>
-          if (c.focus.exists(predicate.matches)) {
-            select(tail, c)
-          } else {
-            new FailedCursor(c, CursorOp.DownField(field))
-          }
+      case JFilter(predicate) :: tail =>
+        if (cursor.focus.exists(predicate.matches)) {
+          select(tail, cursor)
+        } else {
+          new FailedCursor(cursor, CursorOp.Find(predicate.matches))
         }
     }
   }
@@ -128,9 +260,9 @@ object JPath {
   private object ObjectPart {
     def unapply(part: JPart): Option[String] = {
       part match {
-        case JField(field)     => Option(field)
-        case JFilter(field, _) => Option(field)
-        case _                 => None
+        case JField(field) => Option(field)
+//        case JFilter(field, _) => Option(field)
+        case _ => None
       }
     }
   }

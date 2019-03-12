@@ -5,7 +5,7 @@ import _root_.io.circe.Json.fromJsonObject
 import _root_.io.circe._
 import _root_.io.circe.syntax._
 import cats.kernel.Semigroup
-import donovan.core.FieldSelector
+import donovan.core.{DataDiff, FieldSelector}
 
 package object json {
 
@@ -33,7 +33,7 @@ package object json {
     }
   }
 
-  val JsonDiffAsDeltas = JsonDiffAsDataDiff.map { jsonDiff: JsonDiff =>
+  val JsonDiffAsDeltas: DataDiff[Json, Json] = JsonDiffAsDataDiff.map { jsonDiff: JsonDiff =>
     import _root_.io.circe.generic.auto._
     jsonDiff.asJson
   }

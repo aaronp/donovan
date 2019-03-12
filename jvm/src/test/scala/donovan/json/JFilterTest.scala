@@ -6,11 +6,11 @@ class JFilterTest extends BaseJsonSpec with implicits {
   "JFilter" should {
     "match using '==='" in {
 
-      val flagIsTrue  = "foo.bar.flag" === true
-      val flagIsFalse = "foo.bar.flag" === false
+      val flagIsTrue  = "foo.bar.flag".asJPath === true
+      val flagIsFalse = "foo.bar.flag".asJPath === false
 
-      flagIsTrue.asMatcher().matches(examples.exampleJson) shouldBe true
-      flagIsFalse.asMatcher().matches(examples.exampleJson) shouldBe false
+      flagIsTrue.matches(examples.exampleJson) shouldBe true
+      flagIsFalse.matches(examples.exampleJson) shouldBe false
     }
     "pickle gte to/from json" in {
       val jfilterJson =
@@ -21,7 +21,7 @@ class JFilterTest extends BaseJsonSpec with implicits {
                 }
                 }"""
 
-      val Some(expected) = ("x" gte 5).path.last.asFilter
+      val Some(expected) = ("x".asJPath gte 5).path.last.asFilter
       val actual         = jfilterJson.as[JPart]
       actual shouldBe Right(expected)
     }
@@ -42,8 +42,7 @@ class JFilterTest extends BaseJsonSpec with implicits {
                   }
                 }"""
 
-      val pred            = "x" gte 5
-      val expected: JPart = JFilter("someField", pred)
+      val expected = ("someField".asJPath gte 5).path.last
 
       jfilterJson.as[JPart] shouldBe Right(expected)
     }

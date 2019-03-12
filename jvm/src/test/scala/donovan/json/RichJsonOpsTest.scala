@@ -31,12 +31,23 @@ class RichJsonOpsTest extends BaseJsonSpec {
       }"""
 
       import donovan.implicits._
-      val p2 = "foo.array[1].nested".asJPath
-      println(p2)
-      val result: Json = json.filter("baz".asJPath, p2)
 
-      println(result.spaces4)
-      println(result.paths.mkString("\n"))
+      json.filter("foo.array[1].nested[0].grandchild2".asJPath) shouldBe json"""{
+         |  "foo" : {
+         |    "array" : [
+         |      {
+         |        "nested" : [ { "grandchild2" : 2 } ]
+         |      }
+         |    ]
+         |  }
+         |}"""
+
+      json.filter("baz".asJPath, "meh".asJPath) shouldBe
+        json""" {
+               |    "baz" : true,
+               |    "meh" : false
+               |}
+             """
     }
   }
 }

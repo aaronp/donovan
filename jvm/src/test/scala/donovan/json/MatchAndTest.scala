@@ -7,13 +7,13 @@ class MatchAndTest extends BaseJsonSpec with implicits {
   "MatchAll and foo" should {
     "just return foo" in {
       MatchAll and MatchNone shouldBe MatchNone
-      (MatchAll and ("a" === "b").asMatcher()) shouldBe (("a" === "b").asMatcher())
+      (MatchAll and ("a".asJPath === "b").asMatcher()) shouldBe (("a".asJPath === "b").asMatcher())
     }
   }
   "MatchAll or foo" should {
     "return MatchAll" in {
       MatchAll or MatchNone shouldBe MatchAll
-      MatchAll or ("a" equalTo "b").asMatcher() shouldBe MatchAll
+      MatchAll or ("a".asJPath equalTo "b").asMatcher() shouldBe MatchAll
     }
   }
   "MatchAnd.Format" should {

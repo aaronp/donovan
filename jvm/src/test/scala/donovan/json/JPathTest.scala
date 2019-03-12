@@ -8,6 +8,14 @@ import scala.language.implicitConversions
 class JPathTest extends BaseJsonSpec {
   import implicits._
 
+  val xyJson = hocon"""x:1
+                      |y:2"""
+
+  "JPath.lte" should {
+    "return lte values" in {
+      "x".asJPath.lte("y".asJPath).matches(xyJson)
+    }
+  }
   "json.selectJson" should {
     "filter out just the json for the provided paths" in {
 
@@ -76,7 +84,7 @@ class JPathTest extends BaseJsonSpec {
               }
             }"""
 
-      val whyIsGreaterThanOne = JPredicate("x".asJPath, ("y" gt 1)).inArray
+      val whyIsGreaterThanOne = JPredicate("x".asJPath, ("y".asJPath gt 1)).inArray
       val path                = JPath("root", "array") :+ whyIsGreaterThanOne
       val path2               = JPath("root", "valueTwo")
 
@@ -104,7 +112,7 @@ class JPathTest extends BaseJsonSpec {
       import io.circe.syntax._
 
       val path        = JPath.forParts("groot", "list") :+ 3
-      val complexPath = path :+ ("value".inArray) :++ ("someInt" gte 9)
+      val complexPath = path :+ ("value".inArray) :++ ("someInt".asJPath gte 9)
 
       val json = complexPath.asJson.spaces4
 
@@ -214,7 +222,7 @@ class JPathTest extends BaseJsonSpec {
                  }
               }
             }"""
-      val removed = (JPath("foo", "bar") ++ ("list" includes 2)).removeFrom(json).get
+      val removed = (JPath("foo", "bar", "list") includes 2).removeFrom(json).get
       removed shouldBe
         json"""{
               "foo" : {
@@ -224,7 +232,7 @@ class JPathTest extends BaseJsonSpec {
               }
             }"""
 
-      (JPath("foo", "bar") ++ ("list" includes 4)).removeFrom(json) shouldBe None
+      (JPath("foo", "bar") ++ ("list".asJPath includes 4)).removeFrom(json) shouldBe None
 
     }
     "remove values from an object array" in {
@@ -294,9 +302,9 @@ class JPathTest extends BaseJsonSpec {
       val json: Json = json"""{ "some-field" : 456 }"""
 
       import JPredicate.implicits._
-      val found = JPath.select(("some-field" equalTo 456).path, json.hcursor)
+      val found = JPath.select(("some-field".asJPath equalTo 456).path, json.hcursor)
       found.succeeded shouldBe true
-      val found2 = JPath.select(("some-field" equalTo 789).path, json.hcursor)
+      val found2 = JPath.select(("some-field".asJPath equalTo 789).path, json.hcursor)
       found2.succeeded shouldBe false
     }
   }
@@ -324,7 +332,7 @@ class JPathTest extends BaseJsonSpec {
             }"""
 
     "select values nested in arrays" in {
-      val whyIsGreaterThanOne = JPredicate("x".asJPath, ("y" gt 1)).inArray
+      val whyIsGreaterThanOne = JPredicate("x".asJPath, ("y".asJPath gt 1)).inArray
       val path                = JPath("root", "array") :+ whyIsGreaterThanOne
       val actual              = path(json)
       actual shouldBe Some(json"""{ "x" : { "y" : 2 }, "value" : 42 }""")

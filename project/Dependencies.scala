@@ -17,7 +17,8 @@ object Dependencies {
   val circe = {
     Def.setting{
       ("com.github.mpilquist" %%% "simulacrum" % "0.12.0") ::
-      List("core", "generic", "parser", "optics", "java8").map(name => "io.circe" %% s"circe-$name" % "0.9.1")
+      List("core", "generic", "parser", "java8").map(name => "io.circe" %% s"circe-$name" % "0.11.1") ++
+      List("optics").map(name => "io.circe" %% s"circe-$name" % "0.11.0")
     }
   }
 

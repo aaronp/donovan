@@ -7,27 +7,17 @@ class JArrayFindTest extends BaseJsonSpec with implicits {
   "JArrayFind" should {
     "marshal to/from json" in {
       val input =
-        """{
-            "select" : [
-              {
-                "arrayFind" : {
-                  "select" : [
-                    {
-                      "field" : "meh",
-                      "predicate" : {
-                        "eq" : "x"
-                      }
-                    }
-                  ],
-                  "test" : "match-all"
-                }
-              }
-            ],
-            "test" : "match-all"
-          }"""
+        """[
+          |    "foo",
+          |    {
+          |        "arrayFind" : {
+          |            "eq" : "x"
+          |        }
+          |    }
+          |]""".stripMargin
 
-      val expected = JArrayFind("meh" === "x").asMatcher()
-      decode[JPredicate](input) shouldBe Right(expected)
+      val expected: JPath = "foo".asJPath :+ Eq(json"x").inArray
+      decode[JPath](input) shouldBe Right(expected)
     }
   }
 }

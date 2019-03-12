@@ -17,10 +17,14 @@ case class RichJsonOps(json: Json) extends AnyVal {
     }
   }
 
+  /** @return all [[JPath]]s for this json object
+    */
   def paths: Vector[JPath] = typesByPath.map {
     case (path, _) => JPath.forParts(path)
   }
 
+  /** @return the json types mapped by their paths
+    */
   def typesByPath: TypesByPath = TypeNode(json).flattenPaths
 
 }

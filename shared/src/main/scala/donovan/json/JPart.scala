@@ -6,7 +6,7 @@ import io.circe.generic.auto._
 import io.circe.syntax._
 
 /**
-  * Represents part of a jpath.
+  * Represents part of a 'jpath' (e.g. a field, position in an array, or field which matches a given condition)
   *
   */
 sealed trait JPart {
@@ -51,7 +51,7 @@ object JPart {
 
   def apply(i: Int) = JPos(i)
 
-  def apply(field: String, predicate: JPredicate) = JFilter(field, predicate)
+  def apply(predicate: JPredicate) = JFilter(predicate)
 
   import cats.syntax.either._
 
@@ -59,13 +59,9 @@ object JPart {
 
   object JFilterDec extends Decoder[JFilter] {
     override def apply(c: HCursor): Result[JFilter] = {
-      val fldCurs = c.downField("field").as[String]
-      val prdCurs = c.downField("predicate").as[JPredicate](JPredicate.JPredicateFormat)
-      fldCurs.flatMap { (fld: String) =>
-        prdCurs.map { (prd: JPredicate) =>
-          JFilter(fld, prd)
-        }
-      }
+//      val prdCurs = c.downField("condition").as[JPredicate](JPredicate.JPredicateFormat)
+      val prdCurs = c.as[JPredicate](JPredicate.JPredicateFormat)
+      prdCurs.map(JFilter.apply)
     }
   }
 
@@ -85,7 +81,8 @@ object JPart {
     override def apply(part: JPart): Json = {
       part match {
         case filter: JFilter =>
-          Json.obj("field" -> Json.fromString(filter.field), "predicate" -> filter.predicate.json)
+          //Json.obj("condition" -> filter.predicate.json)
+          filter.predicate.json
         case JField(field)   => field.asJson
         case JPos(pos)       => pos.asJson
         case pos: JArrayFind => pos.asJson
@@ -101,4 +98,4 @@ case class JPos(pos: Int) extends JPart
 
 case class JArrayFind(arrayFind: JPredicate) extends JPart
 
-case class JFilter(field: String, predicate: JPredicate) extends JPart
+case class JFilter(predicate: JPredicate) extends JPart
