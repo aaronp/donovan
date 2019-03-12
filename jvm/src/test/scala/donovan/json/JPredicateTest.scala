@@ -42,7 +42,7 @@ class JPredicateTest extends BaseJsonSpec {
 
   "Before" should {
     "evaluate 'health.asOf' before '1 day ago' " in {
-      val before = "health.asOf" before "1 day ago"
+      val before: JPath = "health.asOf" isBefore "1 day ago"
       before.asMatcher().matches(hocon""" health.asOf : "yesterday" """) shouldBe false
       before.asMatcher().matches(hocon""" health.asOf : "1 day ago" """) shouldBe false
       before.asMatcher().matches(hocon""" health.asOf : "2 days ago" """) shouldBe true
@@ -55,7 +55,7 @@ class JPredicateTest extends BaseJsonSpec {
   }
   "After" should {
     "evaluate 'health.asOf' after '1 day ago' " in {
-      val before = "health.asOf" after "1 day ago"
+      val before = "health.asOf" isAfter "1 day ago"
       before.asMatcher().matches(hocon""" health.asOf : "2 days ago" """) shouldBe false
       before.asMatcher().matches(hocon""" health.asOf : "1 hour ago" """) shouldBe true
       before.asMatcher().matches(hocon""" health.asOf : "23 hours ago" """) shouldBe true

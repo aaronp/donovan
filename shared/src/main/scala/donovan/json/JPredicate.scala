@@ -61,9 +61,9 @@ object JPredicate {
       def inArray: JArrayFind = Eq(ev(value)).inArray
     }
 
-    implicit class RichJsonField(field: String) {
+    implicit class RichJsonField(val field: String) {
       private implicit def predAsJFilter(p: JPredicate): JPath = {
-        val path = field.asJPath.path
+        val path = asJPath.path
         val opt = path.last.asField.map(_.name).map { lastFieldName =>
           val prefix: List[JPart] = path.init
 
@@ -73,33 +73,43 @@ object JPredicate {
         opt.getOrElse(JFilter(field, p).asPath)
       }
 
-      def asJPath = JPath(field)
+      def asJPath: JPath = JPath(field)
 
       def asJField = JField(field)
 
       def !(other: JPredicate): JPath = Not(other)
 
-      def =!=[J](value: J)(implicit ev: J => Json): JPath = Not(Eq(value))
+      def =!=(value: Json): JPath  = Not(Eq(value))
+      def =!=(value: JPath): JPath = Not(equalTo(value))
 
-      def !==[J](value: J)(implicit ev: J => Json): JPath = {
-        =!=(value)
+      def !==(value: Json): JPath  = =!=(value)
+      def !==(value: JPath): JPath = =!=(value)
+
+      def ===(value: Json): JPath  = equalTo(value)
+      def ===(value: JPath): JPath = equalTo(value)
+
+      def equalTo(value: Json): JPath = Eq(value)
+      def equalTo(value: JPath): JPath = {
+        ComparePredicate(asJPath, value, Op.Equals)
       }
 
-      def ===[J](value: J)(implicit ev: J => Json): JPath = Eq(value)
+      def isBefore(time: String): JPath = Before(time)
+      def isBefore(value: JPath): JPath = ComparePredicate(asJPath, value, Op.Before)
 
-      def equalTo[J](value: J)(implicit ev: J => Json): JPath = Eq(value)
+      def isAfter(time: String): JPath = After(time)
+      def isAfter(value: JPath): JPath = ComparePredicate(asJPath, value, Op.After)
 
-      def before(time: String): JPath = Before(time)
+      def gt(value: Json): JPath  = Gt(value)
+      def gt(value: JPath): JPath = ComparePredicate(asJPath, value, Op.GT)
 
-      def after(time: String): JPath = After(time)
+      def lt(value: Json): JPath  = Lt(value)
+      def lt(value: JPath): JPath = ComparePredicate(asJPath, value, Op.LT)
 
-      def gt[J](value: J)(implicit ev: J => Json): JPath = Gt(value)
+      def gte(value: Json): JPath  = Gte(value)
+      def gte(value: JPath): JPath = ComparePredicate(asJPath, value, Op.GTE)
 
-      def lt[J](value: J)(implicit ev: J => Json): JPath = Lt(value)
-
-      def gte[J](value: J)(implicit ev: J => Json): JPath = Gte(value)
-
-      def lte[J](value: J)(implicit ev: J => Json): JPath = Lte(value)
+      def lte(value: Json): JPath  = Lte(value)
+      def lte(value: JPath): JPath = ComparePredicate(asJPath, value, Op.LTE)
 
       def ~=(regex: String): JPath = JRegex(regex)
 
@@ -127,6 +137,7 @@ object JPredicate {
       // format: off
       c.as[TestPredicate].
         orElse(asMatchAllOrNone(c)).
+        orElse(c.as[ComparePredicate]).
         orElse(c.as[And]).
         orElse(c.as[Or]).
         orElse(c.as[Not]).
@@ -143,15 +154,16 @@ object JPredicate {
     }
 
     override def apply(a: JPredicate): Json = a match {
-      case p: TestPredicate => p.asJson
-      case MatchAll         => MatchAll.json
-      case MatchNone        => MatchNone.json
-      case p: And           => p.asJson
-      case p: Or            => p.asJson
-      case p: Not           => p.asJson
-      case p: Eq            => p.asJson
-      case p: JRegex        => p.asJson
-      case p: JIncludes     => p.asJson
+      case p: TestPredicate    => p.asJson
+      case p: ComparePredicate => p.asJson
+      case MatchAll            => MatchAll.json
+      case MatchNone           => MatchNone.json
+      case p: And              => p.asJson
+      case p: Or               => p.asJson
+      case p: Not              => p.asJson
+      case p: Eq               => p.asJson
+      case p: JRegex           => p.asJson
+      case p: JIncludes        => p.asJson
 
       case p: Gt  => p.asJson
       case p: Gte => p.asJson
@@ -287,27 +299,24 @@ sealed abstract class ComparablePredicate(value: Json, bdCompare: (BigDecimal, B
     }
   }
 
-  private def asBigDecimal(json: Json) = {
+  private def asBigDecimal(json: Json): Option[BigDecimal] = {
     json.asNumber.flatMap(_.toBigDecimal).orElse {
       json.asString.flatMap(s => Try(BigDecimal(s)).toOption)
     }
   }
 
   override def matches(json: Json): Boolean = {
-    val res = json.as[Json].right.map { (tea: Json) =>
-      if (requiresDec) {
-        (asBigDecimal(tea), refBigDecimal) match {
-          case (Some(x), Some(y)) => bdCompare(x, y)
-          case _                  => false
-        }
-      } else {
-        (asLong(tea), refLong) match {
-          case (Some(x), Some(y)) => longCompare(x, y)
-          case _                  => false
-        }
+    if (requiresDec) {
+      (asBigDecimal(json), refBigDecimal) match {
+        case (Some(x), Some(y)) => bdCompare(x, y)
+        case _                  => false
+      }
+    } else {
+      (asLong(json), refLong) match {
+        case (Some(x), Some(y)) => longCompare(x, y)
+        case _                  => false
       }
     }
-    res.right.getOrElse(false)
   }
 }
 
@@ -327,6 +336,22 @@ case class Lt(lt: Json) extends ComparablePredicate(lt, _ < _, _ < _) {
 
 case class Lte(lte: Json) extends ComparablePredicate(lte, _ <= _, _ <= _) {
   override def json: Json = this.asJson
+}
+
+case class ComparePredicate(lhs: JPath, rhs: JPath, op: Op) extends JPredicate {
+  override def matches(json: Json): Boolean = {
+    lhs.selectValue(json).exists { left =>
+      rhs.selectValue(json).exists { right =>
+        op.eval(left, right)
+      }
+    }
+  }
+
+  override def toString = s"Test($lhs $op $rhs)"
+
+  override def json = {
+    Json.obj("lhs" -> lhs.json, "rhs" -> rhs.json, "op" -> Json.fromString(op.name))
+  }
 }
 
 case class TestPredicate(select: JPath, test: JPredicate) extends JPredicate {

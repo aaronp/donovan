@@ -5,7 +5,10 @@ import io.circe.{Json, JsonObject}
 
 import scala.compat.Platform
 
-sealed trait TypeNode {
+/**
+  * Used to flatten json paths
+  */
+private[json] sealed trait TypeNode {
 
   override def toString = flatten.sorted.mkString(Platform.EOL)
 
@@ -18,7 +21,7 @@ sealed trait TypeNode {
   def flattenPaths: TypesByPath
 }
 
-object TypeNode {
+private[json] object TypeNode {
 
   val Empty = TypeNodeValue(NullType)
 
@@ -40,7 +43,7 @@ object TypeNode {
   }
 }
 
-case class TypeNodeObject(children: Map[String, TypeNode]) extends TypeNode {
+private[json] case class TypeNodeObject(children: Map[String, TypeNode]) extends TypeNode {
   val `type`: JType = ObjType
 
   override def flattenPaths: TypesByPath = {
@@ -57,7 +60,7 @@ case class TypeNodeObject(children: Map[String, TypeNode]) extends TypeNode {
   }
 }
 
-case class TypeNodeArray(children: Vector[TypeNode]) extends TypeNode {
+private[json] case class TypeNodeArray(children: Vector[TypeNode]) extends TypeNode {
   val `type`: JType = ArrayType
 
   override def flattenPaths: TypesByPath = {
@@ -69,6 +72,6 @@ case class TypeNodeArray(children: Vector[TypeNode]) extends TypeNode {
   }
 }
 
-case class TypeNodeValue(val `type`: JType) extends TypeNode {
+private[json] case class TypeNodeValue(val `type`: JType) extends TypeNode {
   override def flattenPaths: TypesByPath = Vector(Nil -> `type`)
 }

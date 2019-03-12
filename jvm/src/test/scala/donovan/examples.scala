@@ -7,6 +7,7 @@ object examples extends App {
 
   lazy val exampleJson: Json = hoconAsJson("""foo.bar.flag = true
       |foo.bar.array = [100,101,102,103]
+      |foo.timestamp = "2019-03-05T12:13:14"
       |points : [
       |  {
       |    x : 1
@@ -16,12 +17,14 @@ object examples extends App {
       |  {
       |    x : 3
       |    y : 4
+      |    time : "2019-03-05T00.00.00"
       |  }
       |]
     """.stripMargin)
 
   object time {
     val Some(fiveMinAgo) = "5 minutes ago".asDate()
+    println(s"fifteen min ago is $fiveMinAgo")
 
     // 10 minutes before 5 minutes ago
     val Some(fifteenMinAgo) = "10 min ago".asDate(fiveMinAgo)
@@ -40,20 +43,27 @@ object examples extends App {
 
     val paths: TypesByPath = justFoo.typesByPath
     println(paths.mkString("The filtered out paths are:\n", "\n", "\n"))
-
   }
 
   object matching {
-    val flagIsTrue  = "foo.bar.flag" === true
-    val flagIsFalse = "foo.bar.flag" === false
+    val flagIsTrue          = "foo.bar.flag" === true
+    val timestampBeforeTime = "foo.timestamp" isBefore "points.1.time".asJPath
 
-    println(flagIsTrue.asMatcher().matches(exampleJson))
-    println(flagIsFalse.asMatcher().matches(exampleJson))
-    println(flagIsFalse.asMatcher().and(flagIsFalse).matches(exampleJson))
+    println("json equals check is")
+    println(flagIsTrue.json)
+
+    println("compare check is")
+    println(timestampBeforeTime.json)
+
+    println("both is")
+    println(timestampBeforeTime.and(flagIsTrue).json)
+
+    println("flag is true:" + flagIsTrue.asMatcher().matches(exampleJson))
+    println("timestampBeforeTime:" + timestampBeforeTime.asMatcher().matches(exampleJson))
+    println("timestampBeforeTime ang flag:" + timestampBeforeTime.and(flagIsTrue).matches(exampleJson))
   }
 
   filtering
-  matching
   matching
 
 }

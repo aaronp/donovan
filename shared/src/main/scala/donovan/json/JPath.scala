@@ -24,15 +24,59 @@ case class JPath(path: List[JPart]) {
 
   def apply(json: Json): Option[Json] = selectValue(json)
 
+  /** e.g. given the JPath ("x" :: "y" :: "z")
+    *
+    * and the json input
+    * {{{
+    *   x : {
+    *     y : {
+    *       z : 1
+    *       flag : true
+    *     }
+    *   }
+    * }}}
+    *
+    * this function would return JsonInt(1)
+    *
+    * @param json the json to select
+    * @return the json value identified by the given path, if it exists
+    */
   def selectValue(json: Json): Option[Json] = JPath.select(path, json.hcursor).focus
 
+  /**  e.g. given the JPath ("x" :: "y" :: "z")
+    *
+    * and the json input
+    * {{{
+    *   x : {
+    *     y : {
+    *       z : 1
+    *       flag : true
+    *     }
+    *   }
+    * }}}
+    *
+    * this function would return the json object:
+    *
+    *      {{{
+    *        x : {
+    *          y : {
+    *            z : 1
+    *         }
+    *        }
+    *      }}}
+    *
+    * @param json the just to select
+    * @return the full json path containing the json value, if it exists
+    */
   def selectJson(json: Json): Option[Json] = {
-    selectValue(json).map { value => JPath.selectJson(path, value)
+    selectValue(json).map { value =>
+      JPath.selectJson(path, value)
     }
   }
 
   def appendTo[T: Encoder](json: Json, value: T): Option[Json] = {
-    val opt = JPath.select(path, json.hcursor).withFocus { json => deepMergeWithArrayConcat(json, implicitly[Encoder[T]].apply(value))
+    val opt = JPath.select(path, json.hcursor).withFocus { json =>
+      deepMergeWithArrayConcat(json, implicitly[Encoder[T]].apply(value))
     }
     opt.top
   }
@@ -40,6 +84,10 @@ case class JPath(path: List[JPart]) {
   def removeFrom(json: Json): Option[Json] = select(path, json.hcursor).delete.top
 
   def asMatcher(filter: JPredicate = JPredicate.matchAll) = JPredicate(this, filter)
+
+  def and(other: JPredicate, theRest: JPredicate*) = asMatcher().and(other, theRest: _*)
+
+  def or(other: JPredicate, theRest: JPredicate*) = asMatcher().or(other, theRest: _*)
 }
 
 object JPath {
@@ -84,7 +132,7 @@ object JPath {
       case ValueR(f, v)      => (f === Json.fromString(v)).path
       case ArrayR(name, "*") => parseSegment(name) :+ JArrayFind(JPredicate.matchAll)
       case ArrayR(name, num) => parseSegment(name) :+ JPos(num.toInt)
-      case name => JField(name).asPath.path
+      case name              => JField(name).asPath.path
     }
   }
 
@@ -106,7 +154,8 @@ object JPath {
       case Nil                   => cursor
       case JField(field) :: tail => cursor.downField(field).withHCursor(select(tail, _))
       case JPos(pos) :: tail =>
-        cursor.downArray.withHCursor { ac => ac.rightN(pos).withHCursor(select(tail, _))
+        cursor.downArray.withHCursor { ac =>
+          ac.rightN(pos).withHCursor(select(tail, _))
         }
       case JArrayFind(predicate) :: tail =>
         cursor.downArray.withHCursor { c =>
