@@ -3,8 +3,6 @@
 This project declares some data types for working with javascript paths and expressions.
 
 
-
-
 ## Usage
 
 
