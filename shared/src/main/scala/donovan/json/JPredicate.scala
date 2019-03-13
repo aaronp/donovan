@@ -42,8 +42,6 @@ object JPredicate {
 
   def apply(select: JPath, test: JPredicate = JPredicate.matchAll) = TestPredicate(select, test)
 
-  implicit def filterAsMatcher(filter: JFilter): JPredicate = filter.asMatcher()
-
   implicit def pathAsMatcher(jpath: JPath): JPredicate = jpath.asMatcher()
 
   object implicits extends LowPriorityPredicateImplicits
@@ -62,10 +60,7 @@ object JPredicate {
     }
 
     implicit class RichJsonField(val field: String) {
-      private implicit def predAsJFilter(p: JPredicate): JPath = (asJPath :+ p)
-
       def asJPath: JPath = JPath(field)
-
       implicit def asJField = JField(field)
     }
 

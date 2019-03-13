@@ -21,6 +21,9 @@ class JPredicateTest extends BaseJsonSpec {
     And(Eq(1), Eq(2)),
     Or(Eq(3), Eq(4)),
     JRegex("te.xt?"),
+    ComparePredicate("foo".asJPath, "bar".asJPath, Op.Equals),
+    MatchAll,
+    MatchNone,
     JIncludes(Set(Json.fromString("value")))
   ).foreach { pred =>
     pred.toString should {
@@ -31,6 +34,15 @@ class JPredicateTest extends BaseJsonSpec {
     }
   }
 
+  "unary_!" should {
+    "take the opposite of the match" in {
+      import implicits._
+      val notFive = !("notFive".asJPath === 5)
+
+      notFive.matches(hocon"""notFive : 6""") shouldBe true
+      notFive.matches(hocon"""notFive : "seven" """) shouldBe true
+    }
+  }
   "<string>.asPath" should {
     "parse nested arrays" in {
       val actual = "foo.array[1][2].nested".asJPath

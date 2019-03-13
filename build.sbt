@@ -22,7 +22,7 @@ addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.3")
 
 inThisBuild(
   Seq(
-    crossScalaVersions := Seq(scalaTwelve), //scalaEleven,
+    crossScalaVersions := Seq(scalaTwelve, scalaEleven),
     organization := s"com.github.${username}",
     scalaVersion := defaultScalaVersion
   ))

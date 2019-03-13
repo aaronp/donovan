@@ -1,5 +1,10 @@
 package donovan.core
 
+/**
+* Represents a
+  * @tparam A
+  * @tparam B
+  */
 trait FieldSelector[A, B] {
 
   def select(in: A): B
