@@ -41,7 +41,7 @@ class JsonDiffAsDataDiffTest extends BaseJsonSpec {
       deltas should contain(
         DiffEntry(List("flag"), Json.True, Json.False),
         DiffEntry(List("age"), Json.fromInt(123), Json.fromInt(456)),
-        DiffEntry(List("deep", "array"), Json.arr(Json.fromInt(1), Json.fromInt(2)), Json.arr(Json.fromInt(1), Json.fromInt(3))),
+        DiffEntry(List("deep", "array"), Json.arr(Json.fromInt(1), Json.fromInt(2)), Json.arr(Json.fromInt(1), Json.fromInt(3)))
       )
     }
   }
