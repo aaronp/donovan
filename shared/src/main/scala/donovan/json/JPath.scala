@@ -139,9 +139,13 @@ final case class JPath(path: List[JPart]) {
 
   def !(other: JPredicate): JPath = withCondition(Not(other))
 
-  def =!=(value: Json): JPath = withCondition(Not(Eq(value)))
+  def =!=(value: Json): JPath = {
+    withCondition(Not(Eq(value)))
+  }
 
-  def !==(value: Json): JPath = withCondition(=!=(value))
+  def !==(value: Json): JPath = {
+    =!=(value)
+  }
 
   def ===(value: Json): JPath = equalTo(value)
   def ===(value: JPath)       = equalTo(value)

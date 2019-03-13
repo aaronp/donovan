@@ -13,38 +13,21 @@ class JFilterTest extends BaseJsonSpec with implicits {
       flagIsFalse.matches(examples.exampleJson) shouldBe false
     }
     "pickle gte to/from json" in {
-      val jfilterJson =
-        json"""{
-                "field" : "x",
-                "predicate" : {
-                  "gte" : 5
-                }
-                }"""
+      val jfilterJson = json"""["x", { "gte" : 5 } ]"""
 
-      val Some(expected) = ("x".asJPath gte 5).path.last.asFilter
-      val actual         = jfilterJson.as[JPart]
-      actual shouldBe Right(expected)
+      val expected: JPath = "x".asJPath gte 5
+
+      jfilterJson.as[JPath] shouldBe Right(expected)
     }
-    "pickle to/from json" in {
+    "pickle lt to/from json" in {
       val jfilterJson =
-        json"""{
-                  "field" : "someField",
-                  "predicate" : {
-                    "select" : [
-                        {
-                          "field" : "x",
-                          "predicate" : {
-                            "gte" : 5
-                          }
-                        }
-                      ],
-                    "test" : "match-all"
-                  }
-                }"""
+        json"""[
+              |    "someField",
+              |    { "lt" : 5 }
+              |]"""
 
-      val expected = ("someField".asJPath gte 5).path.last
-
-      jfilterJson.as[JPart] shouldBe Right(expected)
+      val expected = "someField".asJPath lt 5
+      jfilterJson.as[JPath] shouldBe Right(expected)
     }
   }
 }
