@@ -3,6 +3,9 @@ import donovan.json.{JPath, TypesByPath}
 import io.circe.Json
 import donovan.implicits._
 
+/**
+  * Just a place to consolidate examples which otherwise can be found in tests
+  */
 object examples extends App {
 
   lazy val exampleJson: Json = hoconAsJson("""
@@ -26,8 +29,7 @@ object examples extends App {
       |]
     """.stripMargin)
 
-
-  def section(header : String)(thunk : => Unit) = {
+  def section(header: String)(thunk: => Unit) = {
     println(s"\n\n====================== $header ======================")
     thunk
   }
@@ -63,7 +65,7 @@ object examples extends App {
 
   def appending = section("appending") {
     // append a new value in json
-    val helloWorld = Json.obj("hello" -> Json.fromString("world"))
+    val helloWorld        = Json.obj("hello" -> Json.fromString("world"))
     val Some(addedHello)  = "points.0".asJPath.appendTo(exampleJson, helloWorld)
     val Some(addedHello2) = JPath.root.appendTo(exampleJson, helloWorld)
 
