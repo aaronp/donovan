@@ -61,6 +61,7 @@ object JPredicate {
 
     implicit class RichJsonField(val field: String) {
       def asJPath: JPath = JPath(field)
+      def asExpression: JExpression = JExpression(asJPath)
       implicit def asJField = JField(field)
     }
 

@@ -112,7 +112,7 @@ final case class JPath(path: List[JPart]) {
     * @param json
     * @param value
     * @tparam T
-    * @return
+    * @return the updated json if this JPath existed in the target json
     */
   def appendTo[T: Encoder](json: Json, value: T): Option[Json] = {
     val opt = JPath.select(path, json.hcursor).withFocus { json =>

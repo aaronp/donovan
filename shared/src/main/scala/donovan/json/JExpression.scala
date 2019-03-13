@@ -297,7 +297,7 @@ object JStringExpression {
 
 case class JNumericExpression(lhs: JExpression, rhs: JExpression, op: NumOp) extends JExpression {
 
-  override def eval(json: Json) = {
+  override def eval(json: Json): Option[Json] = {
     for {
       lhsValue <- lhs.eval(json)
       rhsValue <- rhs.eval(json)

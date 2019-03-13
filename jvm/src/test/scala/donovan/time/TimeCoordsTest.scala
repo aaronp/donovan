@@ -119,7 +119,5 @@ class TimeCoordsTest extends BaseJsonSpec {
       val TimeCoords.FixedDateTime(dateTime) = "2011-12-03T10:15:30Z"
       dateTime.toLocalDateTime shouldBe LocalDateTime.of(2011, 12, 3, 10, 15, 30)
     }
-
   }
-
 }
