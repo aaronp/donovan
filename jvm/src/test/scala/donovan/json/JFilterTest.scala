@@ -6,8 +6,8 @@ class JFilterTest extends BaseJsonSpec with implicits {
   "JFilter" should {
     "match using '==='" in {
 
-      val flagIsTrue  = "foo.bar.flag".asJPath === true
-      val flagIsFalse = "foo.bar.flag".asJPath === false
+      val flagIsTrue  = "foo.flag".asJPath === true
+      val flagIsFalse = "foo.flag".asJPath === false
 
       flagIsTrue.matches(examples.exampleJson) shouldBe true
       flagIsFalse.matches(examples.exampleJson) shouldBe false
