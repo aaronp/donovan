@@ -1,7 +1,7 @@
 package donovan.json
 
 import cats.Semigroup
-import io.circe.Json
+import io.circe.{Decoder, Json, ObjectEncoder}
 
 case class JsonDiff(deltas: List[DiffEntry]) {
 
@@ -36,6 +36,9 @@ case class JsonDiff(deltas: List[DiffEntry]) {
 }
 
 object JsonDiff {
+
+  implicit val encoder: ObjectEncoder[JsonDiff] = io.circe.generic.semiauto.deriveEncoder[JsonDiff]
+  implicit val decoder: Decoder[JsonDiff] = io.circe.generic.semiauto.deriveDecoder[JsonDiff]
 
   def apply(lhs: Json, rhs: Json): JsonDiff = {
     val diffs = diffRecursive(Nil, lhs, rhs, Nil)
@@ -101,4 +104,8 @@ case class DiffEntry(path: List[String], lhs: Json, rhs: Json) {
 
 object DiffEntry {
   def apply(lhs: Json, rhs: Json): DiffEntry = new DiffEntry(Nil, lhs, rhs)
+
+  implicit val encoder: ObjectEncoder[DiffEntry] = io.circe.generic.semiauto.deriveEncoder[DiffEntry]
+  implicit val decoder: Decoder[DiffEntry] = io.circe.generic.semiauto.deriveDecoder[DiffEntry]
+
 }

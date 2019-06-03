@@ -235,8 +235,8 @@ case class JConstantExpression(const: Option[Json]) extends JExpression {
   override def eval(json: Json): Option[Json] = const
 }
 object JConstantExpression {
-  implicit val encoder = io.circe.generic.semiauto.deriveEncocer[JConstantExpression]
-  implicit val decoder = io.circe.generic.semiauto.deriveDecocer[JConstantExpression]
+  implicit val encoder: ObjectEncoder[JConstantExpression] = io.circe.generic.semiauto.deriveEncoder[JConstantExpression]
+  implicit val decoder: Decoder[JConstantExpression] = io.circe.generic.semiauto.deriveDecoder[JConstantExpression]
 }
 
 case class JMergeExpression(lhs: JExpression, rhs: JExpression) extends JExpression {

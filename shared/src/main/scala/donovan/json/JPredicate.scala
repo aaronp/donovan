@@ -201,6 +201,8 @@ case class Or(or: List[JPredicate]) extends JPredicate {
 }
 
 object Or {
+  implicit val encoder: ObjectEncoder[Or] = io.circe.generic.semiauto.deriveEncoder[Or]
+  implicit val decoder: Decoder[Or] = io.circe.generic.semiauto.deriveDecoder[Or]
   def apply(first: JPredicate, second: JPredicate, theRest: JPredicate*): Or =
     Or(first :: second :: theRest.toList)
 }
@@ -214,7 +216,11 @@ case class And(and: List[JPredicate]) extends JPredicate {
 object And {
   def apply(first: JPredicate, second: JPredicate, theRest: JPredicate*): And =
     And(first :: second :: theRest.toList)
+
+  implicit val encoder: ObjectEncoder[And] = io.circe.generic.semiauto.deriveEncoder[And]
+  implicit val decoder: Decoder[And] = io.circe.generic.semiauto.deriveDecoder[And]
 }
+
 
 case class Not(not: JPredicate) extends JPredicate {
   override def matches(json: Json) = !(not.matches(json))
@@ -223,19 +229,41 @@ case class Not(not: JPredicate) extends JPredicate {
 
   override def json: Json = this.asJson
 }
+object Not {
+
+  implicit val encoder: ObjectEncoder[Not] = io.circe.generic.semiauto.deriveEncoder[Not]
+  implicit val decoder: Decoder[Not] = io.circe.generic.semiauto.deriveDecoder[Not]
+}
+
 
 case class Eq(eq: Json) extends JPredicate {
   override def matches(json: Json) = json == eq
 
   override def json: Json = this.asJson
 }
+object Eq {
+
+  implicit val encoder: ObjectEncoder[Eq] = io.circe.generic.semiauto.deriveEncoder[Eq]
+  implicit val decoder: Decoder[Eq] = io.circe.generic.semiauto.deriveDecoder[Eq]
+}
+
 
 case class Before(before: String) extends TimePredicate(before, _ isBefore _) with JPredicate {
   override def json: Json = this.asJson
 }
+object Before {
+
+  implicit val encoder: ObjectEncoder[Before] = io.circe.generic.semiauto.deriveEncoder[Before]
+  implicit val decoder: Decoder[Before] = io.circe.generic.semiauto.deriveDecoder[Before]
+}
 
 case class After(after: String) extends TimePredicate(after, _ isAfter _) with JPredicate {
   override def json: Json = this.asJson
+}
+object After {
+
+  implicit val encoder: ObjectEncoder[After] = io.circe.generic.semiauto.deriveEncoder[After]
+  implicit val decoder: Decoder[After] = io.circe.generic.semiauto.deriveDecoder[After]
 }
 
 abstract class TimePredicate(time: String, compare: (Timestamp, Timestamp) => Boolean) {
@@ -263,6 +291,12 @@ case class JRegex(regex: String) extends JPredicate {
 
   override def json: Json = this.asJson
 }
+object JRegex {
+
+  implicit val encoder: ObjectEncoder[JRegex] = io.circe.generic.semiauto.deriveEncoder[JRegex]
+  implicit val decoder: Decoder[JRegex] = io.circe.generic.semiauto.deriveDecoder[JRegex]
+}
+
 
 case class JIncludes(elements: Set[Json]) extends JPredicate {
 
@@ -271,6 +305,11 @@ case class JIncludes(elements: Set[Json]) extends JPredicate {
   override def matches(json: Json) = json.asArray.exists(contains)
 
   override def json: Json = this.asJson
+}
+object JIncludes {
+
+  implicit val encoder: ObjectEncoder[JIncludes] = io.circe.generic.semiauto.deriveEncoder[JIncludes]
+  implicit val decoder: Decoder[JIncludes] = io.circe.generic.semiauto.deriveDecoder[JIncludes]
 }
 
 sealed abstract class ComparablePredicate(value: Json, bdCompare: (BigDecimal, BigDecimal) => Boolean, longCompare: (Long, Long) => Boolean)
@@ -315,17 +354,34 @@ import io.circe.Json
 case class Gt(gt: Json) extends ComparablePredicate(gt, _ > _, _ > _) {
   override def json: Json = this.asJson
 }
+object Gt {
+  implicit val encoder: ObjectEncoder[Gt] = io.circe.generic.semiauto.deriveEncoder[Gt]
+  implicit val decoder: Decoder[Gt] = io.circe.generic.semiauto.deriveDecoder[Gt]
+}
 
 case class Gte(gte: Json) extends ComparablePredicate(gte, _ >= _, _ >= _) {
   override def json: Json = this.asJson
 }
+object Gte {
+  implicit val encoder: ObjectEncoder[Gte] = io.circe.generic.semiauto.deriveEncoder[Gte]
+  implicit val decoder: Decoder[Gte] = io.circe.generic.semiauto.deriveDecoder[Gte]
+}
+
 
 case class Lt(lt: Json) extends ComparablePredicate(lt, _ < _, _ < _) {
   override def json: Json = this.asJson
 }
+object Lt {
+  implicit val encoder: ObjectEncoder[Lt] = io.circe.generic.semiauto.deriveEncoder[Lt]
+  implicit val decoder: Decoder[Lt] = io.circe.generic.semiauto.deriveDecoder[Lt]
+}
 
 case class Lte(lte: Json) extends ComparablePredicate(lte, _ <= _, _ <= _) {
   override def json: Json = this.asJson
+}
+object Lte {
+  implicit val encoder: ObjectEncoder[Lte] = io.circe.generic.semiauto.deriveEncoder[Lte]
+  implicit val decoder: Decoder[Lte] = io.circe.generic.semiauto.deriveDecoder[Lte]
 }
 
 case class TestPredicate(select: JPath, test: JPredicate) extends JPredicate {
@@ -338,4 +394,8 @@ case class TestPredicate(select: JPath, test: JPredicate) extends JPredicate {
   override def json = {
     Json.obj("select" -> select.json, "test" -> test.json)
   }
+}
+object TestPredicate {
+  implicit val encoder: ObjectEncoder[TestPredicate] = io.circe.generic.semiauto.deriveEncoder[TestPredicate]
+  implicit val decoder: Decoder[TestPredicate] = io.circe.generic.semiauto.deriveDecoder[TestPredicate]
 }

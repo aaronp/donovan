@@ -34,7 +34,6 @@ package object json {
   }
 
   val JsonDiffAsDeltas = JsonDiffAsDataDiff.map { jsonDiff: JsonDiff =>
-    import _root_.io.circe.generic.auto._
     jsonDiff.asJson
   }
 

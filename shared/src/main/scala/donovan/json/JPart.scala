@@ -95,9 +95,28 @@ object JPart {
 }
 
 case class JField(name: String) extends JPart
+object JField {
+  implicit val encoder: ObjectEncoder[JField] = io.circe.generic.semiauto.deriveEncoder[JField]
+  implicit val decoder: Decoder[JField] = io.circe.generic.semiauto.deriveDecoder[JField]
+}
+
+
 
 case class JPos(pos: Int) extends JPart
+object JPos {
+  implicit val encoder: ObjectEncoder[JPos] = io.circe.generic.semiauto.deriveEncoder[JPos]
+  implicit val decoder: Decoder[JPos] = io.circe.generic.semiauto.deriveDecoder[JPos]
+}
+
 
 case class JArrayFind(arrayFind: JPredicate) extends JPart
+object JArrayFind {
+  implicit val encoder: ObjectEncoder[JArrayFind] = io.circe.generic.semiauto.deriveEncoder[JArrayFind]
+  implicit val decoder: Decoder[JArrayFind] = io.circe.generic.semiauto.deriveDecoder[JArrayFind]
+}
 
 case class JFilter(field: String, predicate: JPredicate) extends JPart
+object JFilter {
+  implicit val encoder: ObjectEncoder[JFilter] = io.circe.generic.semiauto.deriveEncoder[JFilter]
+  implicit val decoder: Decoder[JFilter] = io.circe.generic.semiauto.deriveDecoder[JFilter]
+}
