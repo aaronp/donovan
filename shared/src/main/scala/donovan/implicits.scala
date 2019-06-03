@@ -5,10 +5,10 @@ import donovan.json.JPredicate.LowPriorityPredicateImplicits
 import donovan.json.RichJsonOps
 import donovan.json.RichJsonOps.LowPriorityJsonOpsImplicits
 import donovan.time.TimeLowPriorityImplicits
-import io.circe.java8.time.TimeInstances
+import io.circe.java8.time._
 import io.circe.{Decoder, Encoder, Json}
 
-trait implicits extends TimeInstances with LowPriorityPredicateImplicits with LowPriorityJExpressionImplicits with LowPriorityJsonOpsImplicits with TimeLowPriorityImplicits {
+trait implicits extends TimeLowPriorityImplicits with LowPriorityPredicateImplicits with LowPriorityJExpressionImplicits with LowPriorityJsonOpsImplicits with JavaTimeEncoders with JavaTimeDecoders {
 
   implicit def asRichJsonOps(json: Json) = RichJsonOps(json)
 

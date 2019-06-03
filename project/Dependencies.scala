@@ -17,10 +17,10 @@ object Dependencies {
   val circe = {
     Def.setting{
 //      ("com.github.mpilquist" %%% "simulacrum" % "0.12.0") ::
-      val optics = "io.circe" %% "optics" % "0.11.0"
+      val optics = "io.circe" %% "circe-optics" % "0.11.0"
 
       val theRest = List("core", "generic", "parser", "java8").map(name => "io.circe" %% s"circe-$name" % "0.11.1")
-      optics +: theRest
+      ("com.github.mpilquist" %%% "simulacrum" % "0.12.0") :: optics :: theRest
     }
   }
 
