@@ -2,7 +2,6 @@ package donovan.json
 
 import io.circe.Decoder.Result
 import io.circe._
-import io.circe.generic.auto._
 import io.circe.syntax._
 
 /**

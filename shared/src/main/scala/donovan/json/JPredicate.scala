@@ -2,7 +2,6 @@ package donovan.json
 
 import donovan.time.{DateTimeResolver, TimeCoords, Timestamp}
 import io.circe.Decoder.Result
-import io.circe.generic.auto._
 import io.circe.syntax._
 import io.circe.{Json, _}
 

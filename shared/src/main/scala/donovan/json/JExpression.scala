@@ -195,15 +195,12 @@ object JExpression {
         case value: JNumericExpression => JNumericExpression.JsonFormat(value)
         case value: JPathExpression    => JPathExpression.JsonFormat(value)
         case value: JStringExpression => JStringExpression.JsonFormat(value)
-        case value: JConstantExpression =>
-          import io.circe.generic.auto._
-          value.asJson
+        case value: JConstantExpression => value.asJson
       }
     }
 
     override def apply(c: HCursor): Result[JExpression] = {
       import cats.syntax.either._
-      import io.circe.generic.auto._
 
       // format: off
       c.as[JMergeExpression](JMergeExpression.JsonFormat).
@@ -236,6 +233,10 @@ object JPathExpression {
 
 case class JConstantExpression(const: Option[Json]) extends JExpression {
   override def eval(json: Json): Option[Json] = const
+}
+object JConstantExpression {
+  implicit val encoder = io.circe.generic.semiauto.deriveEncocer[JConstantExpression]
+  implicit val decoder = io.circe.generic.semiauto.deriveDecocer[JConstantExpression]
 }
 
 case class JMergeExpression(lhs: JExpression, rhs: JExpression) extends JExpression {
