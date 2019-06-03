@@ -120,7 +120,7 @@ class JPredicateTest extends BaseJsonSpec {
   "Before" should {
     "evaluate 'time' before '1 minute ago' " in {
       val sixtyOneSecondsAgo: Timestamp = TimeCoords.nowUTC().minus(java.time.Duration.ofSeconds(61))
-      val json = donovan.hoconAsJson("value : \"" + sixtyOneSecondsAgo + "\"")
+      val json                          = donovan.hoconAsJson("value : \"" + sixtyOneSecondsAgo + "\"")
 
       ("value" before "1 minute ago").asMatcher().matches(json) shouldBe true
     }
