@@ -1,14 +1,16 @@
 import sbt.Keys.{organization, publishMavenStyle, publishTo}
 import sbtcrossproject.CrossPlugin.autoImport.crossProject
 import scoverage.ScoverageKeys.coverageFailOnMinimum
+import org.scoverage.coveralls.Imports.CoverallsKeys._
 import ReleaseTransformations._
 
 val repo = "donovan"
 name := repo
 val username            = "aaronp"
-val scalaEleven         = "2.11.8"
-val scalaTwelve         = "2.12.6"
+val scalaTwelve         = "2.12.10"
 val defaultScalaVersion = scalaTwelve
+
+coverallsTokenFile := Option((Path.userHome / ".sbt" / ".coveralls.donovan").asPath.toString)
 
 // see https://github.com/sbt/sbt-ghpages
 // this exposes the 'ghpagesPushSite' task
