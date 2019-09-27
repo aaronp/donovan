@@ -5,7 +5,7 @@ import io.circe.Json
 
 object JsonForSchema {
 
-  /** @param schema the schema
+  /** @param schema      the schema
     * @param jsonForType a function which will create the json values for a [[JType]]
     * @return an example json document based on the input schema
     */
@@ -31,18 +31,16 @@ object JsonForSchema {
     }
   }
 
-  private val IsArray = "(.*)\\[\\]".r
-
   def jsonForPath(path: List[String], typ: JType)(jsonForType: JType => Json): Json = {
+    def isArray(p: String) = p.isEmpty
+
     path match {
       case Nil => jsonForType(typ)
-      case IsArray(field) :: tail =>
+      case field :: tail if isArray(field) =>
         val nested = jsonForPath(tail, typ)(jsonForType)
-        Json.obj(field -> Json.arr(nested))
+        Json.arr(nested)
       case field :: tail =>
         Json.obj(field -> jsonForPath(tail, typ)(jsonForType))
     }
   }
-
-
 }
