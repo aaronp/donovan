@@ -6,7 +6,8 @@ import io.circe.Json
 object JsonForSchema {
 
   /** @param schema      the schema
-    * @param jsonForType a function which will create the json values for a [[JType]]
+    * @param jsonForType a function which will create the json values for a [[JType]].
+    *                    It's a bit naughty doing the curried function as an implicit. Oh well. Screw you, future self!
     * @return an example json document based on the input schema
     */
   def apply(schema: TypesByPath)(implicit jsonForType: JType => Json = defaultJsonForType): Json = {

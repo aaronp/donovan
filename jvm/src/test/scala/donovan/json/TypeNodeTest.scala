@@ -23,6 +23,11 @@ class TypeNodeTest extends BaseJsonSpec {
         "deep.[].[].[]:BooleanType",
         "deep.[].[].[].[]:NumericType"
       )
+
+      tn.toString shouldBe
+        """deep.[].[].[].[]:NumericType
+          |deep.[].[].[]:BooleanType
+          |deep.[]:TextType""".stripMargin
     }
     "return empty paths for null or scalars" in {
       TypeNode(Json.Null) shouldBe TypeNode(NullType)

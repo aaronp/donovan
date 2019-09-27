@@ -5,6 +5,9 @@ import io.circe.{Json, JsonObject}
 
 import scala.compat.Platform
 
+/**
+  * Represents the type for a particular path
+  */
 sealed trait TypeNode {
 
   override def toString = flatten.sorted.mkString(Platform.EOL)

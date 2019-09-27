@@ -21,7 +21,11 @@ case class RichJsonOps(json: Json) extends AnyVal {
 
   /** @return a collection of json types by their 'jpaths'
     */
-  def typesByPath: TypesByPath = TypeNode(json).flattenPaths
+  def typesByPath: TypesByPath = schema.flattenPaths
+
+  /** @return the TypeNode, whose '.toString' can be handy to print schemas
+    */
+  def schema: TypeNode = TypeNode(json)
 
   /** @return a new json document with the values replaced
     */
