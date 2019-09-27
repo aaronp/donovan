@@ -32,6 +32,7 @@ class JsonForSchemaTest extends BaseJsonSpec {
             empty: null
           }"""
       import donovan.implicits._
+
       val schema = sourceJson.typesByPath
 
       JsonForSchema(schema) shouldBe json"""{

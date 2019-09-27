@@ -1,5 +1,6 @@
 package donovan.json
 
+import donovan.json.JsonForSchema.defaultJsonForType
 import io.circe.Json
 
 case class RichJsonOps(json: Json) extends AnyVal {
@@ -29,7 +30,7 @@ case class RichJsonOps(json: Json) extends AnyVal {
 
   /** @return a new json document with the values replaced
     */
-  def anonymize: Json = JsonForSchema(typesByPath)(JsonForSchema.defaultJsonForType)
+  def anonymize(implicit jsonForType: JType => Json = defaultJsonForType): Json = JsonForSchema(typesByPath)
 
 }
 
