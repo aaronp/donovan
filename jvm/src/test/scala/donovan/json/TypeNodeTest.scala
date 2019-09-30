@@ -5,6 +5,95 @@ import donovan.json.JType._
 import io.circe.Json
 
 class TypeNodeTest extends BaseJsonSpec {
+  "TypeNode.anonymize" should {
+    "merge nested object arrays" in {
+      val obj = json"""{
+                          "root" : [
+                            {
+                              "a" : "one",
+                              "b" : "two",
+                              "c" : 3
+                            },
+                            {
+                              "d" : false
+                            }
+                          ]
+                        }"""
+
+      import donovan.implicits._
+
+      obj.schema.anonymize() shouldBe json"""{
+                          "root" : [
+                            {
+                              "a" : "text",
+                              "b" : "text",
+                              "c" : 123
+                            },
+                            {
+                              "d" : true
+                            }
+                          ]
+                        }"""
+
+      obj.anonymize shouldBe obj.anonymize.anonymize
+    }
+    "dedupe common elements" in {
+      val sourceJson =
+        hocon"""{
+           base : {
+              list : [1,2,3]
+              doubleList : [[1,2], [3,4]]
+              hybridList : [[1,2], [[[false]]], { "foo" : "bar" }]
+              listOfObj : [
+                { hi : false },
+                { there : this },
+                { there : field },
+                { there : is },
+                { there : redundant },
+                { there : and },
+                { there : so },
+                { there : will },
+                { there : only },
+                { there : have },
+                { there : one },
+                { there : anonymized },
+                { there : value }
+              ]
+            }
+            number: 1
+            empty: null
+          }"""
+      import donovan.implicits._
+
+      sourceJson.anonymize shouldBe json"""{
+          "number" : 123,
+          "empty" : null,
+          "base" : {
+              "listOfObj" : [
+                  {
+                      "hi" : true
+                  },
+                  {
+                      "there" : "text"
+                  }
+              ],
+              "list" : [
+                  123
+              ],
+              "hybridList" : [
+                  [123],
+                  [[[true]]],
+                  {
+                      "foo" : "text"
+                  }
+              ],
+              "doubleList" : [
+                  [123]
+              ]
+          }
+      }"""
+    }
+  }
   "JPaths.apply" should {
     "return deeply nested arrays" in {
       val tn: TypeNode = TypeNode(
@@ -24,7 +113,7 @@ class TypeNodeTest extends BaseJsonSpec {
         "deep.[].[].[].[]:NumericType"
       )
 
-      tn.toString shouldBe
+      tn.pretty shouldBe
         """deep.[].[].[].[]:NumericType
           |deep.[].[].[]:BooleanType
           |deep.[]:TextType""".stripMargin

@@ -26,4 +26,16 @@ object JType {
       _ => ObjType
     )
   }
+
+
+  def defaultJsonForType(typ: JType): Json = {
+    typ match {
+      case NullType => Json.Null
+      case BooleanType => Json.True
+      case NumericType => Json.fromInt(123)
+      case TextType => Json.fromString("text")
+      case ArrayType => Json.arr()
+      case ObjType => Json.obj()
+    }
+  }
 }

@@ -10,24 +10,26 @@ import scala.compat.Platform
   */
 sealed trait TypeNode {
 
-  override def toString = flatten.sorted.mkString(Platform.EOL)
+  def anonymize(jsonForType: JType => Json = defaultJsonForType): Json
+
+  def pretty: String = flatten.sorted.mkString(Platform.EOL)
 
   private final def render(path: TypeByPath): String = {
     def show(p: String) = p match {
-      case "" => "[]"
+      case ""       => "[]"
       case nonEmpty => nonEmpty
     }
 
     def showType(t: JType) = t match {
       case ArrayType => "[]"
-      case nonEmpty => nonEmpty.toString
+      case nonEmpty  => nonEmpty.toString
     }
 
     path match {
-      case (Nil, t) => showType(t)
+      case (Nil, t)                 => showType(t)
       case (head :: Nil, ArrayType) => s"${show(head)}.[]"
-      case (head :: Nil, t) => s"${show(head)}:${showType(t)}"
-      case (head :: tail, t) => s"${show(head)}.${render(tail, t)}"
+      case (head :: Nil, t)         => s"${show(head)}:${showType(t)}"
+      case (head :: tail, t)        => s"${show(head)}.${render(tail, t)}"
     }
   }
 
@@ -73,10 +75,20 @@ case class TypeNodeObject(children: Map[String, TypeNode]) extends TypeNode {
         }
     }
   }
+
+  override def anonymize(jsonForType: JType => Json): Json = {
+    val kids = children.mapValues(_.anonymize(jsonForType))
+    Json.obj(kids.toSeq: _*)
+  }
 }
 
 case class TypeNodeArray(children: Vector[TypeNode]) extends TypeNode {
   val `type`: JType = ArrayType
+
+  override def anonymize(jsonForType: JType => Json): Json = {
+    val kids = children.map(_.anonymize(jsonForType))
+    Json.arr(kids: _*)
+  }
 
   override def flattenPaths: TypesByPath = {
     if (children.isEmpty) {
@@ -91,5 +103,6 @@ case class TypeNodeArray(children: Vector[TypeNode]) extends TypeNode {
 }
 
 case class TypeNodeValue(val `type`: JType) extends TypeNode {
-  override def flattenPaths: TypesByPath = Vector(Nil -> `type`)
+  override def anonymize(jsonForType: JType => Json): Json = jsonForType(`type`)
+  override def flattenPaths: TypesByPath                   = Vector(Nil -> `type`)
 }
