@@ -54,11 +54,19 @@ object TimeCoords {
       DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(instant)
     }
 
+    object StringAsEpoch {
+      def unapply(text: String): Option[Timestamp] = {
+        Try(text.trim.toLong).toOption.map { maybeEpoch =>
+          val inst: Instant = Instant.ofEpochMilli(maybeEpoch)
+          ZonedDateTime.ofInstant(inst, ZoneOffset.UTC)
+        }
+      }
+    }
     def unapply(text: String): Option[Timestamp] = {
       val results: Iterator[Try[TemporalAccessor]] = formats.iterator.map { formatter =>
         Try(formatter.parse(text))
       }
-      results.collectFirst {
+      val fromStringOpt = results.collectFirst {
         case Success(result) =>
           try {
             ZonedDateTime.from(result)
@@ -66,6 +74,8 @@ object TimeCoords {
             case _: DateTimeException => LocalDateTime.from(result).atZone(ZoneOffset.UTC)
           }
       }
+
+      fromStringOpt.orElse(StringAsEpoch.unapply(text))
     }
   }
 

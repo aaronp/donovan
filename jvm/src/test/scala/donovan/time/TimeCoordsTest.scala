@@ -1,6 +1,6 @@
 package donovan.time
 
-import java.time.{LocalDate, LocalDateTime, LocalTime, ZoneOffset}
+import java.time._
 
 import donovan.BaseJsonSpec
 
@@ -47,6 +47,17 @@ class TimeCoordsTest extends BaseJsonSpec {
     }
   }
   "TimeCoords.unapply" should {
+    "match text epochs" in {
+      import concurrent.duration._
+      val expected = ZonedDateTime.of(2019, 1, 2, 3, 4, 5, 6.nanos.toMillis.toInt, ZoneOffset.UTC)
+
+      val Some(zonedDateTimeFnc) = TimeCoords.unapply(expected.toInstant.toEpochMilli.toString)
+      val ignoredInput           = ZonedDateTime.now()
+      val zonedDateTime          = zonedDateTimeFnc(ignoredInput)
+      zonedDateTime shouldBe zonedDateTimeFnc(ignoredInput.plusDays(1))
+      zonedDateTime shouldBe expected
+    }
+
     "match now" in {
       val TimeCoords(forTime) = "now"
       val date                = forTime(LocalDateTime.of(1977, 1, 1, 0, 0, 0).atZone(ZoneOffset.UTC))
