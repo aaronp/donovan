@@ -4,16 +4,9 @@ import donovan.BaseJsonSpec
 class IsEmptyTest extends BaseJsonSpec {
 
   "IsEmpty" should {
-    "work for json" in {
-      import IsEmpty.ops._
-      json"{}".isEmpty shouldBe true
-      json"{}".nonEmpty shouldBe false
-    }
-    "work for arrays" in {
-      def requiresIsEmpty[T: IsEmpty](value: T) = {
-        import IsEmpty.ops._
-        value.isEmpty
-      }
+
+    "work for String/Arrays/Seq" in {
+      def requiresIsEmpty[T: IsEmpty](value: T) = IsEmpty[T].isEmpty(value)
 
       requiresIsEmpty(null: String) shouldBe true
       requiresIsEmpty("") shouldBe true

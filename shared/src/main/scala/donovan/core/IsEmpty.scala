@@ -1,13 +1,13 @@
 package donovan.core
 import io.circe.Json
-import simulacrum.typeclass
 
-@typeclass trait IsEmpty[-T] {
+trait IsEmpty[-T] {
   def isEmpty(value: T): Boolean
   def nonEmpty(value: T): Boolean = !isEmpty(value)
 }
 
 object IsEmpty {
+  def apply[A](implicit isEmpty: IsEmpty[A]): IsEmpty[A] = isEmpty
 
   implicit object SeqIsEmpty extends IsEmpty[TraversableOnce[_]] {
     override def isEmpty(value: TraversableOnce[_]): Boolean = value.isEmpty

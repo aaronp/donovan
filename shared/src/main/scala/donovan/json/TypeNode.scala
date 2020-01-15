@@ -47,7 +47,7 @@ object TypeNode {
   def apply(json: Json): TypeNode = forJson(json)
 
   private def forObject(json: JsonObject): TypeNode = {
-    TypeNodeObject(json.toMap.mapValues(forJson))
+    TypeNodeObject(json.toMap.mapValues(forJson).toMap)
   }
 
   private def forArray(json: Vector[Json]): TypeNode = {

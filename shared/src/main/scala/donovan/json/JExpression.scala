@@ -325,7 +325,7 @@ object JNumericExpression {
         }
       }
 
-      val parseResults: SeqView[JNumericExpression, Seq[_]] = NumOp.ops.view.flatMap {
+      val parseResults = NumOp.ops.view.flatMap {
         case op => asExpr(c.downField(op.symbol.name), op).right.toOption
       }
 

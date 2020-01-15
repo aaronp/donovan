@@ -110,7 +110,8 @@ object JPath {
         }
       case JArrayFind(predicate) :: tail =>
         cursor.downArray.withHCursor { c =>
-          val found = c.find(predicate.matches)
+
+          val found = CursorFind(c)(predicate.matches)
           found.withHCursor(select(tail, _))
         }
       case JFilter(field, predicate) :: tail =>
