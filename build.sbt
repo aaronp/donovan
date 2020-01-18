@@ -11,7 +11,7 @@ val username = "aaronp"
 val scalaTwelve         = "2.12.10"
 val scalaThirteen       = "2.13.0"
 val defaultScalaVersion = scalaThirteen
-crossScalaVersions := Seq(scalaTwelve, scalaThirteen)
+crossScalaVersions := Seq(scalaThirteen, scalaTwelve)
 scalaVersion := defaultScalaVersion
 
 coverallsTokenFile := Option((Path.userHome / ".sbt" / ".coveralls.donovan").asPath.toString)
