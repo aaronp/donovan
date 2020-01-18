@@ -12,9 +12,9 @@ sealed trait JPart {
 
   final def asPath = JPath(this)
 
-  final def +:(other : JPath) = JPath(this +: other.path)
+  final def +:(other: JPath) = JPath(this +: other.path)
 
-  final def :+(other : JPath) = JPath(other.path :+ this)
+  final def :+(other: JPath) = JPath(other.path :+ this)
 
   final def asMatcher(filter: JPredicate = JPredicate.matchAll): JPredicate = asPath.asMatcher(filter)
 
@@ -27,20 +27,20 @@ sealed trait JPart {
   final def or(other: JPart): JPredicate = or(other.asMatcher())
 
   final def asPos: Option[JPos] = this match {
-    case p : JPos => Option(p)
-    case _ => None
+    case p: JPos => Option(p)
+    case _       => None
   }
   final def asField: Option[JField] = this match {
-    case p : JField => Option(p)
-    case _ => None
+    case p: JField => Option(p)
+    case _         => None
   }
   final def asFind: Option[JArrayFind] = this match {
-    case p : JArrayFind => Option(p)
-    case _ => None
+    case p: JArrayFind => Option(p)
+    case _             => None
   }
   final def asFilter: Option[JFilter] = this match {
-    case p : JFilter => Option(p)
-    case _ => None
+    case p: JFilter => Option(p)
+    case _          => None
   }
 }
 
@@ -97,26 +97,23 @@ object JPart {
 case class JField(name: String) extends JPart
 object JField {
   implicit val encoder: ObjectEncoder[JField] = io.circe.generic.semiauto.deriveEncoder[JField]
-  implicit val decoder: Decoder[JField] = io.circe.generic.semiauto.deriveDecoder[JField]
+  implicit val decoder: Decoder[JField]       = io.circe.generic.semiauto.deriveDecoder[JField]
 }
-
-
 
 case class JPos(pos: Int) extends JPart
 object JPos {
   implicit val encoder: ObjectEncoder[JPos] = io.circe.generic.semiauto.deriveEncoder[JPos]
-  implicit val decoder: Decoder[JPos] = io.circe.generic.semiauto.deriveDecoder[JPos]
+  implicit val decoder: Decoder[JPos]       = io.circe.generic.semiauto.deriveDecoder[JPos]
 }
-
 
 case class JArrayFind(arrayFind: JPredicate) extends JPart
 object JArrayFind {
   implicit val encoder: ObjectEncoder[JArrayFind] = io.circe.generic.semiauto.deriveEncoder[JArrayFind]
-  implicit val decoder: Decoder[JArrayFind] = io.circe.generic.semiauto.deriveDecoder[JArrayFind]
+  implicit val decoder: Decoder[JArrayFind]       = io.circe.generic.semiauto.deriveDecoder[JArrayFind]
 }
 
 case class JFilter(field: String, predicate: JPredicate) extends JPart
 object JFilter {
   implicit val encoder: ObjectEncoder[JFilter] = io.circe.generic.semiauto.deriveEncoder[JFilter]
-  implicit val decoder: Decoder[JFilter] = io.circe.generic.semiauto.deriveDecoder[JFilter]
+  implicit val decoder: Decoder[JFilter]       = io.circe.generic.semiauto.deriveDecoder[JFilter]
 }

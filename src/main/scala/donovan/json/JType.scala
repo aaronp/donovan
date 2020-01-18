@@ -27,15 +27,14 @@ object JType {
     )
   }
 
-
   def defaultJsonForType(typ: JType): Json = {
     typ match {
-      case NullType => Json.Null
+      case NullType    => Json.Null
       case BooleanType => Json.True
       case NumericType => Json.fromInt(123)
-      case TextType => Json.fromString("text")
-      case ArrayType => Json.arr()
-      case ObjType => Json.obj()
+      case TextType    => Json.fromString("text")
+      case ArrayType   => Json.arr()
+      case ObjType     => Json.obj()
     }
   }
 }

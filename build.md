@@ -7,7 +7,7 @@ This project declares some data types for working with javascript paths and expr
 
 
 ```
-libraryDependencies += "com.github.aaronp" %%% "donovan" % "0.0.1"
+libraryDependencies += "com.github.aaronp" %% "donovan" % "0.0.2"
 ```
 
 in maven:
@@ -15,8 +15,8 @@ in maven:
 ```
 <dependency>
   <groupId>com.github.aaronp</groupId>
-  <artifactId>donovan_2.12</artifactId>
-  <version>0.0.1</version>
+  <artifactId>donovan_2.13</artifactId>
+  <version>0.0.2</version>
 </dependency>
 ```
 

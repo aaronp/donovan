@@ -38,7 +38,7 @@ case class JsonDiff(deltas: List[DiffEntry]) {
 object JsonDiff {
 
   implicit val encoder: ObjectEncoder[JsonDiff] = io.circe.generic.semiauto.deriveEncoder[JsonDiff]
-  implicit val decoder: Decoder[JsonDiff] = io.circe.generic.semiauto.deriveDecoder[JsonDiff]
+  implicit val decoder: Decoder[JsonDiff]       = io.circe.generic.semiauto.deriveDecoder[JsonDiff]
 
   def apply(lhs: Json, rhs: Json): JsonDiff = {
     val diffs = diffRecursive(Nil, lhs, rhs, Nil)
@@ -106,6 +106,6 @@ object DiffEntry {
   def apply(lhs: Json, rhs: Json): DiffEntry = new DiffEntry(Nil, lhs, rhs)
 
   implicit val encoder: ObjectEncoder[DiffEntry] = io.circe.generic.semiauto.deriveEncoder[DiffEntry]
-  implicit val decoder: Decoder[DiffEntry] = io.circe.generic.semiauto.deriveDecoder[DiffEntry]
+  implicit val decoder: Decoder[DiffEntry]       = io.circe.generic.semiauto.deriveDecoder[DiffEntry]
 
 }
