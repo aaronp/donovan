@@ -1,5 +1,4 @@
 import sbt.Keys.{organization, publishMavenStyle, publishTo}
-import sbtcrossproject.CrossPlugin.autoImport.crossProject
 import scoverage.ScoverageKeys.coverageFailOnMinimum
 import org.scoverage.coveralls.Imports.CoverallsKeys._
 import ReleaseTransformations._
@@ -13,7 +12,7 @@ val scalaThirteen       = "2.13.0"
 val defaultScalaVersion = scalaThirteen
 crossScalaVersions := Seq(scalaThirteen, scalaTwelve)
 scalaVersion := defaultScalaVersion
-
+organization := s"com.github.${username}"
 coverallsTokenFile := Option((Path.userHome / ".sbt" / ".coveralls.donovan").asPath.toString)
 
 // see https://github.com/sbt/sbt-ghpages
@@ -26,94 +25,24 @@ enablePlugins(GitVersioning)
 
 releaseCrossBuild := true
 
-//addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.3")
-
-inThisBuild(
-  Seq(
-    crossScalaVersions := Seq(scalaTwelve), //scalaEleven,
-    organization := s"com.github.${username}",
-    scalaVersion := defaultScalaVersion
-  ))
-
 test in assembly := {}
 
 lazy val noPublishSettings = skip in publish := true
 
-// https://github.com/xerial/sbt-sonatype
-lazy val publishSettings = Seq(
-  publishMavenStyle := true,
-  releaseCrossBuild := true,
-  releaseProcess := Seq[ReleaseStep](
-    checkSnapshotDependencies,
-    inquireVersions,
-    runClean,
-    runTest,
-    setReleaseVersion,
-    commitReleaseVersion,
-    tagRelease,
-    // For non cross-build projects, use releaseStepCommand("publishSigned")
-    releaseStepCommandAndRemaining("+publishSigned"),
-    setNextVersion,
-    commitNextVersion,
-    releaseStepCommand("sonatypeReleaseAll"),
-    pushChanges
-  ),
-  // see https://leonard.io/blog/2017/01/an-in-depth-guide-to-deploying-to-maven-central/
-  pomIncludeRepository := (_ => false),
-  // To sync with Maven central, you need to supply the following information:
-  pomExtra in Global := {
-    <url>https://github.com/${username}/${repo}
-    </url>
-      <licenses>
-        <license>
-          <name>Apache 2</name>
-          <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-        </license>
-      </licenses>
-      <developers>
-        <developer>
-          <id>${username}</id>
-          <name>Aaron Pritzlaff</name>
-          <url>https://github.com/${username}/${repo}
-          </url>
-        </developer>
-      </developers>
-  },
-  credentials += Credentials(Path.userHome / ".sbt" / ".credentials"),
-  publishTo := {
-    val nexus = "https://oss.sonatype.org/"
-    if (isSnapshot.value)
-      Some("snapshots" at nexus + "content/repositories/snapshots")
-    else
-      Some("releases" at nexus + "service/local/staging/deploy/maven2")
-  }
-)
+credentials += Credentials(Path.userHome / ".sbt" / ".credentials")
 
-lazy val commonSettings = publishSettings
+publishTo := {
+  val nexus = "https://oss.sonatype.org/"
+  if (isSnapshot.value)
+    Some("snapshots" at nexus + "content/repositories/snapshots")
+  else
+    Some("releases" at nexus + "service/local/staging/deploy/maven2")
+}
 
-lazy val root = project
-  .in(file("."))
-  .aggregate(donovanJS, donovanJVM)
-  //.dependsOn(donovanJS, donovanJVM)
-  .settings(commonSettings: _*)
-  .settings(noPublishSettings)
+publishMavenStyle := true
 
-lazy val donovan = crossProject(JSPlatform, JVMPlatform)
-  .in(file("."))
-  .settings(name := repo)
-  .settings(moduleName := repo)
-  .settings(commonSettings: _*)
-  .jvmSettings(
-    libraryDependencies ++= Dependencies.JVM.value,
-    coverageMinimum := 75,
-    coverageFailOnMinimum := true
-  )
-  .jsSettings(
-    libraryDependencies ++= Dependencies.Javascript
-  )
-
-lazy val donovanJVM = donovan.jvm
-lazy val donovanJS  = donovan.js
+coverageMinimum := 75
+coverageFailOnMinimum := true
 
 resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
 autoAPIMappings := true
@@ -178,3 +107,24 @@ scalacOptions ++= List(
   "-language:higherKinds", // Allow higher-kinded types
   "-language:implicitConversions" // Allow definition of implicit functions called views
 )
+
+libraryDependencies ++= Dependencies.all
+
+pomExtra in Global := {
+  <url>https://github.com/${username}/${repo}
+    </url>
+      <licenses>
+        <license>
+          <name>Apache 2</name>
+          <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+      </licenses>
+      <developers>
+        <developer>
+          <id>${username}</id>
+          <name>Aaron Pritzlaff</name>
+          <url>https://github.com/${username}/${repo}
+          </url>
+        </developer>
+      </developers>
+}

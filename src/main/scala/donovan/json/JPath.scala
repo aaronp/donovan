@@ -27,12 +27,14 @@ case class JPath(path: List[JPart]) {
   def selectValue(json: Json): Option[Json] = JPath.select(path, json.hcursor).focus
 
   def selectJson(json: Json): Option[Json] = {
-    selectValue(json).map { value => JPath.selectJson(path, value)
+    selectValue(json).map { value =>
+      JPath.selectJson(path, value)
     }
   }
 
   def appendTo[T: Encoder](json: Json, value: T): Option[Json] = {
-    val opt = JPath.select(path, json.hcursor).withFocus { json => deepMergeWithArrayConcat(json, implicitly[Encoder[T]].apply(value))
+    val opt = JPath.select(path, json.hcursor).withFocus { json =>
+      deepMergeWithArrayConcat(json, implicitly[Encoder[T]].apply(value))
     }
     opt.top
   }
@@ -84,7 +86,7 @@ object JPath {
       case ValueR(f, v)      => (f === Json.fromString(v)).path
       case ArrayR(name, "*") => parseSegment(name) :+ JArrayFind(JPredicate.matchAll)
       case ArrayR(name, num) => parseSegment(name) :+ JPos(num.toInt)
-      case name => JField(name).asPath.path
+      case name              => JField(name).asPath.path
     }
   }
 
@@ -106,11 +108,11 @@ object JPath {
       case Nil                   => cursor
       case JField(field) :: tail => cursor.downField(field).withHCursor(select(tail, _))
       case JPos(pos) :: tail =>
-        cursor.downArray.withHCursor { ac => ac.rightN(pos).withHCursor(select(tail, _))
+        cursor.downArray.withHCursor { ac =>
+          ac.rightN(pos).withHCursor(select(tail, _))
         }
       case JArrayFind(predicate) :: tail =>
         cursor.downArray.withHCursor { c =>
-
           val found = CursorFind(c)(predicate.matches)
           found.withHCursor(select(tail, _))
         }

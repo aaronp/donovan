@@ -6,7 +6,7 @@ import scala.annotation.tailrec
 
 private[json] object CursorFind {
 
-  final def apply(initial : HCursor)(p: Json => Boolean): ACursor = {
+  final def apply(initial: HCursor)(p: Json => Boolean): ACursor = {
     @tailrec
     def go(c: ACursor): ACursor = c match {
       case success: HCursor => if (p(success.value)) success else go(success.right)
@@ -15,6 +15,5 @@ private[json] object CursorFind {
 
     go(initial)
   }
-
 
 }

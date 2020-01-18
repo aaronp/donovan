@@ -191,10 +191,10 @@ object JExpression {
   implicit object JExpressionFormat extends Encoder[JExpression] with Decoder[JExpression] {
     override def apply(exp: JExpression): Json = {
       exp match {
-        case value: JMergeExpression   => JMergeExpression.JsonFormat(value)
-        case value: JNumericExpression => JNumericExpression.JsonFormat(value)
-        case value: JPathExpression    => JPathExpression.JsonFormat(value)
-        case value: JStringExpression => JStringExpression.JsonFormat(value)
+        case value: JMergeExpression    => JMergeExpression.JsonFormat(value)
+        case value: JNumericExpression  => JNumericExpression.JsonFormat(value)
+        case value: JPathExpression     => JPathExpression.JsonFormat(value)
+        case value: JStringExpression   => JStringExpression.JsonFormat(value)
         case value: JConstantExpression => value.asJson
       }
     }
@@ -236,7 +236,7 @@ case class JConstantExpression(const: Option[Json]) extends JExpression {
 }
 object JConstantExpression {
   implicit val encoder: ObjectEncoder[JConstantExpression] = io.circe.generic.semiauto.deriveEncoder[JConstantExpression]
-  implicit val decoder: Decoder[JConstantExpression] = io.circe.generic.semiauto.deriveDecoder[JConstantExpression]
+  implicit val decoder: Decoder[JConstantExpression]       = io.circe.generic.semiauto.deriveDecoder[JConstantExpression]
 }
 
 case class JMergeExpression(lhs: JExpression, rhs: JExpression) extends JExpression {
@@ -258,7 +258,8 @@ object JMergeExpression {
 
     override def apply(c: HCursor): Result[JMergeExpression] = {
       c.downField("merge").downField("lhs").as[JExpression].right.flatMap { lhsExpr =>
-        c.downField("merge").downField("rhs").as[JExpression].right.map { rhs => JMergeExpression(lhsExpr, rhs)
+        c.downField("merge").downField("rhs").as[JExpression].right.map { rhs =>
+          JMergeExpression(lhsExpr, rhs)
         }
       }
     }
@@ -288,7 +289,8 @@ object JStringExpression {
 
     override def apply(c: HCursor): Result[JStringExpression] = {
       c.downField("concat").downField("lhs").as[JExpression].right.flatMap { lhsExpr =>
-        c.downField("concat").downField("rhs").as[JExpression].right.map { rhs => JStringExpression(lhsExpr, rhs, ConcatString)
+        c.downField("concat").downField("rhs").as[JExpression].right.map { rhs =>
+          JStringExpression(lhsExpr, rhs, ConcatString)
         }
       }
     }
@@ -320,7 +322,8 @@ object JNumericExpression {
     override def apply(c: HCursor): Result[JNumericExpression] = {
       def asExpr(cursor: ACursor, op: NumOp) = {
         cursor.downField("lhs").as[JExpression].right.flatMap { lhs =>
-          cursor.downField("rhs").as[JExpression].right.map { rhs => JNumericExpression(lhs, rhs, op)
+          cursor.downField("rhs").as[JExpression].right.map { rhs =>
+            JNumericExpression(lhs, rhs, op)
           }
         }
       }
