@@ -5,6 +5,21 @@ import donovan.json.JType._
 import io.circe.Json
 
 class TypeNodeTest extends BaseJsonSpec {
+
+  "TypeNode" should {
+    List(
+      TypeNodeObject(Map("foo" -> TypeNodeValue(JType.BooleanType))),
+      TypeNodeValue(JType.NumericType),
+      TypeNodeArray(Vector(TypeNodeArray(Vector()))),
+      TypeNodeArray(Vector(TypeNodeArray(Vector(TypeNodeValue(JType.NumericType))))),
+    ).foreach { expected: TypeNode =>
+        import io.circe.syntax._
+        val json: Json = expected.asJson
+      s"serialize ${expected} to/from $json" in {
+        json.as[TypeNode] shouldBe Right(expected)
+      }
+    }
+  }
   "TypeNode.anonymize" should {
     "merge nested object arrays" in {
       val obj = json"""{

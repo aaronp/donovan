@@ -12,7 +12,11 @@ object Dependencies {
     "junit" % "junit" % "4.13" % "test"
   )
 
-  val circe = List("core", "generic", "parser").map(name => "io.circe" %% s"circe-$name" % "0.12.3")
+  val circe = {
+    val ge = "io.circe" %% "circe-generic-extras" % "0.12.2"
+
+    ge :: List("core", "generic", "parser").map(name => "io.circe" %% s"circe-$name" % "0.12.3")
+  }
 
   val flexmark = "com.vladsch.flexmark" % "flexmark-all" % "0.35.10" % Test
 

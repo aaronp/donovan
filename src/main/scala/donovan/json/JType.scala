@@ -1,6 +1,10 @@
 package donovan.json
-import io.circe.Json
+import io.circe.Decoder.Result
+import io.circe._
 
+/**
+  * A class representing the available json types
+  */
 sealed trait JType
 
 object JType {
@@ -25,6 +29,40 @@ object JType {
       _ => ArrayType,
       _ => ObjType
     )
+  }
+
+  implicit object JsonFormat extends Encoder[JType] with Decoder[JType] {
+    private val _Null    = "Null"
+    private val _Boolean = "Boolean"
+    private val _Numeric = "Numeric"
+    private val _Text    = "Text"
+    private val _Array   = "Array"
+    private val _Object  = "Object"
+
+    override def apply(typ: JType): Json = {
+      val name = typ match {
+        case TextType    => _Text
+        case ObjType     => _Object
+        case NumericType => _Numeric
+        case BooleanType => _Boolean
+        case NullType    => _Null
+        case ArrayType   => _Array
+      }
+      Json.fromString(name)
+    }
+
+    override def apply(c: HCursor): Result[JType] = {
+      import cats.syntax.either._
+      c.as[String].flatMap {
+        case `_Text`    => TextType.asRight
+        case `_Numeric` => NumericType.asRight
+        case `_Object`  => ObjType.asRight
+        case `_Boolean` => BooleanType.asRight
+        case `_Null`    => NullType.asRight
+        case `_Array`   => ArrayType.asRight
+        case other      => DecodingFailure(s"Couldn't parse string as type: '$other'", c.history).asLeft
+      }
+    }
   }
 
   def defaultJsonForType(typ: JType): Json = {
