@@ -1,7 +1,7 @@
 import sbt._
 object Dependencies {
 
-  val config = "com.typesafe" % "config" % "1.3.4" % "test"
+  val config = "com.typesafe" % "config" % "1.4.0" % "test"
 
   val logging = "com.typesafe.scala-logging" %% "scala-logging" % "3.7.2" % "provided"
 
@@ -13,9 +13,9 @@ object Dependencies {
   )
 
   val circe = {
-    val ge = "io.circe" %% "circe-generic-extras" % "0.12.2"
+    val ge = "io.circe" %% "circe-generic-extras" % "0.13.0"
 
-    ge :: List("core", "generic", "parser").map(name => "io.circe" %% s"circe-$name" % "0.12.3")
+    ge :: List("core", "generic", "parser").map(name => "io.circe" %% s"circe-$name" % "0.13.0")
   }
 
   val flexmark = "com.vladsch.flexmark" % "flexmark-all" % "0.35.10" % Test
