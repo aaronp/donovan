@@ -9,6 +9,8 @@ import donovan.core.FieldSelector
 
 package object json {
 
+
+  type ValuePath = Seq[String]
   type TypeByPath  = (List[String], JType)
   type TypesByPath = Vector[TypeByPath]
   def newTypesByPath() = Vector[TypeByPath]()

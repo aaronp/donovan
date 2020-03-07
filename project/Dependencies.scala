@@ -6,8 +6,8 @@ object Dependencies {
   val logging = "com.typesafe.scala-logging" %% "scala-logging" % "3.7.2" % "provided"
 
   val testDependencies = List(
-    "org.scalactic" %% "scalactic" % "3.1.0" % "test",
-    "org.scalatest" %% "scalatest" % "3.1.0" % "test",
+    "org.scalactic" %% "scalactic" % "3.1.1" % "test",
+    "org.scalatest" %% "scalatest" % "3.1.1" % "test",
     "org.pegdown" % "pegdown" % "1.6.0" % "test",
     "junit" % "junit" % "4.13" % "test"
   )
@@ -21,5 +21,6 @@ object Dependencies {
   val flexmark = "com.vladsch.flexmark" % "flexmark-all" % "0.35.10" % Test
 
   // https://github.com/vmunier/play-scalajs.g8/issues/20
-  def all= flexmark :: config :: testDependencies ::: circe
+  val JVM = flexmark :: config :: testDependencies ::: circe
+  val Javascript = circe
 }
