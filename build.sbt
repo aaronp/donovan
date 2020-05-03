@@ -8,10 +8,9 @@ val repo = "donovan"
 name := repo
 val username = "aaronp"
 
-val scalaTwelve         = "2.12.10"
 val scalaThirteen       = "2.13.2"
 val defaultScalaVersion = scalaThirteen
-crossScalaVersions := Seq(scalaThirteen, scalaTwelve)
+crossScalaVersions := Seq(scalaThirteen)
 scalaVersion := defaultScalaVersion
 
 coverallsTokenFile := Option((Path.userHome / ".sbt" / ".coveralls.donovan").asPath.toString)
@@ -26,11 +25,9 @@ enablePlugins(GitVersioning)
 
 releaseCrossBuild := true
 
-//addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.3")
-
 inThisBuild(
   Seq(
-    crossScalaVersions := Seq(scalaTwelve), //scalaEleven,
+    crossScalaVersions := Seq(scalaThirteen),
     organization := s"com.github.${username}",
     scalaVersion := defaultScalaVersion
   ))
