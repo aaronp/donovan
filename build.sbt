@@ -9,7 +9,7 @@ name := repo
 val username = "aaronp"
 
 val scalaTwelve         = "2.12.10"
-val scalaThirteen       = "2.13.0"
+val scalaThirteen       = "2.13.2"
 val defaultScalaVersion = scalaThirteen
 crossScalaVersions := Seq(scalaThirteen, scalaTwelve)
 scalaVersion := defaultScalaVersion
